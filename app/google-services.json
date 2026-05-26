@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "14014779023",
+    "project_id": "mes-78db7",
+    "storage_bucket": "mes-78db7.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:14014779023:android:4f885ad8bafe652d5daafa",
+        "android_client_info": {
+          "package_name": "com.mowtiie.messecure"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWRUmDkkM29pzyc87RYsZ15Y9l9ojIV_E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
