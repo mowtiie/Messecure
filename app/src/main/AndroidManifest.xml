@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Messecure">
         <activity
+            android:name=".ui.activities.ChatsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.activities.BiometricLockActivity"
             android:exported="false" />
         <activity
