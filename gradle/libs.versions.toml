@@ -15,6 +15,8 @@ navigationRuntime = "2.9.8"
 navigationFragment = "2.9.8"
 filamentAndroid = "1.17.1"
 recyclerview = "1.4.0"
+preference = "1.2.1"
+firebaseFunctions = "22.1.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version.ref = "junit" }
@@ -31,6 +33,8 @@ navigation-runtime = { group = "androidx.navigation", name = "navigation-runtime
 navigation-fragment = { group = "androidx.navigation", name = "navigation-fragment", version.ref = "navigationFragment" }
 filament-android = { group = "com.google.ar.sceneform", name = "filament-android", version.ref = "filamentAndroid" }
 recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+preference = { group = "androidx.preference", name = "preference", version.ref = "preference" }
+firebase-functions = { group = "com.google.firebase", name = "firebase-functions", version.ref = "firebaseFunctions" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

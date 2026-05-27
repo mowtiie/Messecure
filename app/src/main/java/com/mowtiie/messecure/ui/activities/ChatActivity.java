@@ -21,13 +21,10 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.mowtiie.messecure.R;
-import com.mowtiie.messecure.adapters.MessageAdapter;
+import com.mowtiie.messecure.ui.adapters.MessageAdapter;
 import com.mowtiie.messecure.data.Message;
-import com.mowtiie.messecure.models.Message;
 import com.mowtiie.messecure.util.KeystoreHelper;
 import com.mowtiie.messecure.util.NetworkUtils;
-import com.mowtiie.messecure.utils.KeystoreHelper;
-import com.mowtiie.messecure.utils.NetworkUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

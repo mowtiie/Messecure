@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.navigation.fragment)
     implementation(libs.filament.android)
     implementation(libs.recyclerview)
+    implementation(libs.preference)
+    implementation(libs.firebase.functions)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
