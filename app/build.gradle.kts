@@ -50,7 +50,8 @@ dependencies {
     implementation(libs.firebase.firestore)
     
     implementation("androidx.biometric:biometric:1.2.0-alpha05")
-    
+    implementation(libs.firebase.messaging)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
