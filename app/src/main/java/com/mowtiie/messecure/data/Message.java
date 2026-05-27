@@ -1,63 +1,57 @@
 package com.mowtiie.messecure.data;
 
+import com.google.firebase.firestore.ServerTimestamp;
+import java.util.Date;
+
 public class Message {
-
-    private String messageId;
-    private String conversationId;
+    private String id;
     private String senderId;
-    private String encryptedPayload;
-    private long timestamp;
-    private boolean isRead;
+    private String text;
+    private String decryptedText;
+    @ServerTimestamp
+    private Date sentAt;
+    private Date readAt;
+    private boolean selfDestruct;
+    private int destructAfterMinutes;
 
-    private boolean isSelfDestructing;
-    private long selfDestructDurationMs;
-    private long timerStartedTimestamp;
+    public Message() {}
 
-    public Message(String messageId, String conversationId, String senderId, String encryptedPayload, long timestamp, boolean isRead) {
-        this.messageId = messageId;
-        this.conversationId = conversationId;
+    public Message(String senderId, String encryptedText, boolean selfDestruct, int destructAfterMinutes) {
         this.senderId = senderId;
-        this.encryptedPayload = encryptedPayload;
-        this.timestamp = timestamp;
-        this.isRead = isRead;
-        this.isSelfDestructing = false;
-        this.selfDestructDurationMs = 0;
-        this.timerStartedTimestamp = 0;
+        this.text = encryptedText;
+        this.selfDestruct = selfDestruct;
+        this.destructAfterMinutes = destructAfterMinutes;
     }
 
-    // Getters and Setters
-    public String getMessageId() { return messageId; }
-    public void setMessageId(String messageId) { this.messageId = messageId; }
-
-    public String getConversationId() { return conversationId; }
-    public void setConversationId(String conversationId) { this.conversationId = conversationId; }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
     public String getSenderId() { return senderId; }
     public void setSenderId(String senderId) { this.senderId = senderId; }
 
-    public String getEncryptedPayload() { return encryptedPayload; }
-    public void setEncryptedPayload(String encryptedPayload) { this.encryptedPayload = encryptedPayload; }
+    public String getText() { return text; }
+    public void setText(String text) { this.text = text; }
 
-    public long getTimestamp() { return timestamp; }
-    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+    public String getDecryptedText() { return decryptedText; }
+    public void setDecryptedText(String decryptedText) { this.decryptedText = decryptedText; }
 
-    public boolean isRead() { return isRead; }
-    public void setRead(boolean read) { isRead = read; }
+    public Date getSentAt() { return sentAt; }
+    public void setSentAt(Date sentAt) { this.sentAt = sentAt; }
 
-    public boolean isSelfDestructing() { return isSelfDestructing; }
-    public void setSelfDestructing(boolean selfDestructing) { isSelfDestructing = selfDestructing; }
+    public Date getReadAt() { return readAt; }
+    public void setReadAt(Date readAt) { this.readAt = readAt; }
 
-    public long getSelfDestructDurationMs() { return selfDestructDurationMs; }
-    public void setSelfDestructDurationMs(long selfDestructDurationMs) { this.selfDestructDurationMs = selfDestructDurationMs; }
+    public boolean isSelfDestruct() { return selfDestruct; }
+    public void setSelfDestruct(boolean selfDestruct) { this.selfDestruct = selfDestruct; }
 
-    public long getTimerStartedTimestamp() { return timerStartedTimestamp; }
-    public void setTimerStartedTimestamp(long timerStartedTimestamp) { this.timerStartedTimestamp = timerStartedTimestamp; }
+    public int getDestructAfterMinutes() { return destructAfterMinutes; }
+    public void setDestructAfterMinutes(int destructAfterMinutes) { this.destructAfterMinutes = destructAfterMinutes; }
 
-    public long getRemainingTimeMs() {
-        if (!isSelfDestructing || timerStartedTimestamp == 0) {
-            return selfDestructDurationMs;
-        }
-        long timeElapsed = System.currentTimeMillis() - timerStartedTimestamp;
-        return selfDestructDurationMs - timeElapsed;
+    public boolean isSentByCurrentUser(String currentUid) {
+        return senderId != null && senderId.equals(currentUid);
+    }
+
+    public boolean isRead() {
+        return readAt != null;
     }
 }

@@ -1,41 +1,51 @@
 package com.mowtiie.messecure.data;
 
-public class User {
-    private String userId;
-    private String name;
-    private String email;
-    private boolean isVerified;
-    private String avatarColorHex;
+import com.google.firebase.firestore.ServerTimestamp;
+import java.util.Date;
 
-    public User(String userId, String name, String email, boolean isVerified, String avatarColorHex) {
-        this.userId = userId;
-        this.name = name;
+public class User {
+    private String uid;
+    private String displayName;
+    private String email;
+    private boolean verified;
+    private String fcmToken;
+    @ServerTimestamp
+    private Date createdAt;
+
+    public User() {}
+
+    public User(String uid, String displayName, String email) {
+        this.uid = uid;
+        this.displayName = displayName;
         this.email = email;
-        this.isVerified = isVerified;
-        this.avatarColorHex = avatarColorHex;
+        this.verified = true;
     }
 
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
+    public String getUid() { return uid; }
+    public void setUid(String uid) { this.uid = uid; }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getDisplayName() { return displayName; }
+    public void setDisplayName(String displayName) { this.displayName = displayName; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public boolean isVerified() { return isVerified; }
-    public void setVerified(boolean verified) { isVerified = verified; }
+    public boolean isVerified() { return verified; }
+    public void setVerified(boolean verified) { this.verified = verified; }
 
-    public String getAvatarColorHex() { return avatarColorHex; }
-    public void setAvatarColorHex(String avatarColorHex) { this.avatarColorHex = avatarColorHex; }
+    public String getFcmToken() { return fcmToken; }
+    public void setFcmToken(String fcmToken) { this.fcmToken = fcmToken; }
 
-    public String getInitials() {
-        if (name == null || name.isEmpty()) return "?";
-        String[] parts = name.trim().split("\\s+");
-        if (parts.length > 1) {
-            return (parts[0].substring(0, 1) + parts[1].substring(0, 1)).toUpperCase();
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+
+    public String getAvatarLabel() {
+        if (displayName == null || displayName.isEmpty()) return "?";
+        String[] parts = displayName.trim().split(" ");
+        if (parts.length >= 2) {
+            return String.valueOf(parts[0].charAt(0)).toUpperCase()
+                 + String.valueOf(parts[1].charAt(0)).toUpperCase();
         }
-        return parts[0].substring(0, 1).toUpperCase();
+        return String.valueOf(displayName.charAt(0)).toUpperCase();
     }
 }
