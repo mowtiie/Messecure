@@ -51,6 +51,10 @@ dependencies {
     
     implementation("androidx.biometric:biometric:1.2.0-alpha05")
     implementation(libs.firebase.messaging)
+    implementation(libs.navigation.runtime)
+    implementation(libs.navigation.fragment)
+    implementation(libs.filament.android)
+    implementation(libs.recyclerview)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
