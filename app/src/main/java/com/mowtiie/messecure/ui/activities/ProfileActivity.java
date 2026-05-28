@@ -1,14 +1,15 @@
-package com.mowtiie.messecure.ui.fragments;
+package com.mowtiie.messecure.ui.activities;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
@@ -16,34 +17,33 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.mowtiie.messecure.R;
 
-public class ProfileFragment extends Fragment {
+public class ProfileActivity extends AppCompatActivity {
 
     private TextView nameText, emailText, avatarLabel;
     private FirebaseFirestore db;
     private String currentUid;
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_profile, container, false);
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_profile);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         db         = FirebaseFirestore.getInstance();
         currentUid = FirebaseAuth.getInstance().getUid();
 
-        nameText    = view.findViewById(R.id.nameText);
-        emailText   = view.findViewById(R.id.emailText);
-        avatarLabel = view.findViewById(R.id.avatarLabel);
+        nameText    = findViewById(R.id.nameText);
+        emailText   = findViewById(R.id.emailText);
+        avatarLabel = findViewById(R.id.avatarLabel);
 
         loadProfile();
 
-        view.findViewById(R.id.editNameButton).setOnClickListener(v -> showEditNameDialog());
+        findViewById(R.id.editNameButton).setOnClickListener(v -> showEditNameDialog());
     }
 
     private void loadProfile() {
@@ -67,12 +67,12 @@ public class ProfileFragment extends Fragment {
     }
 
     private void showEditNameDialog() {
-        View dialogView = LayoutInflater.from(requireContext())
+        View dialogView = LayoutInflater.from(this)
                 .inflate(R.layout.dialog_edit_name, null);
         TextInputEditText nameInput = dialogView.findViewById(R.id.nameInput);
         nameInput.setText(nameText.getText());
 
-        new MaterialAlertDialogBuilder(requireContext())
+        new MaterialAlertDialogBuilder(this)
                 .setTitle("Edit Display Name")
                 .setView(dialogView)
                 .setPositiveButton("Save", (dialog, which) -> {

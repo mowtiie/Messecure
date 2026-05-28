@@ -5,12 +5,6 @@
     android:id="@+id/nav_graph">
 
     <fragment
-        android:id="@+id/profileFragment"
-        android:name="com.mowtiie.messecure.ui.fragments.ProfileFragment"
-        tools:layout="@layout/fragment_profile"
-        android:label="Profile"/>
-
-    <fragment
         android:id="@+id/settingsFragment"
         android:name="com.mowtiie.messecure.ui.fragments.SettingsFragment"
         tools:layout="@layout/fragment_settings"

@@ -158,7 +158,8 @@ public class MainActivity extends AppCompatActivity {
             Intent contactsIntent = new Intent(MainActivity.this, ContactsActivity.class);
             startActivity(contactsIntent);
         } else if (id == R.id.menu_profile) {
-            // move to profile activity
+            Intent profileIntent = new Intent(MainActivity.this, ProfileActivity.class);
+            startActivity(profileIntent);
         } else if (id == R.id.menu_settings) {
             // move to settings activity
         } else if (id == R.id.menu_wipe) {

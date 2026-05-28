@@ -20,6 +20,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Messecure">
         <activity
+            android:name=".ui.activities.ProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.activities.ContactsActivity"
             android:exported="false" />
         <activity
