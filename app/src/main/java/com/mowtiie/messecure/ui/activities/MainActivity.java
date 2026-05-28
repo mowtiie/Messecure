@@ -163,7 +163,8 @@ public class MainActivity extends AppCompatActivity {
         } else if (id == R.id.menu_settings) {
             // move to settings activity
         } else if (id == R.id.menu_wipe) {
-            // move to wipe activity
+            Intent wipeIntent = new Intent(MainActivity.this, WipeActivity.class);
+            startActivity(wipeIntent);
         } else if (id == R.id.menu_logout) {
             signOut();
         }

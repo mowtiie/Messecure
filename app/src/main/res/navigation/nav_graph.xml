@@ -10,10 +10,4 @@
         tools:layout="@layout/fragment_settings"
         android:label="Settings"/>
 
-    <fragment
-        android:id="@+id/wipeFragment"
-        android:name="com.mowtiie.messecure.ui.fragments.WipeFragment"
-        tools:layout="@layout/fragment_wipe"
-        android:label="Remote Wipe"/>
-
 </navigation>

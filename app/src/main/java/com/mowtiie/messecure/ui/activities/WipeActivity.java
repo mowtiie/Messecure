@@ -1,31 +1,30 @@
-package com.mowtiie.messecure.ui.fragments;
+package com.mowtiie.messecure.ui.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
+import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.functions.FirebaseFunctionsException;
 import com.mowtiie.messecure.R;
-import com.mowtiie.messecure.ui.activities.LoginActivity;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class WipeFragment extends Fragment {
+public class WipeActivity extends AppCompatActivity {
 
     private static final String TAG = "WipeFragment";
 
@@ -35,27 +34,26 @@ public class WipeFragment extends Fragment {
     private Button wipeButton;
     private ProgressBar progressBar;
 
-    @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_wipe, container, false);
-    }
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_wipe);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        wipeScope   = view.findViewById(R.id.wipeScope);
-        wipeButton  = view.findViewById(R.id.wipeButton);
-        progressBar = view.findViewById(R.id.progressBar);
+        wipeScope   = findViewById(R.id.wipeScope);
+        wipeButton  = findViewById(R.id.wipeButton);
+        progressBar = findViewById(R.id.progressBar);
 
         wipeButton.setOnClickListener(v -> confirmWipe());
     }
 
     private void confirmWipe() {
-        new MaterialAlertDialogBuilder(requireContext())
+        new MaterialAlertDialogBuilder(this)
                 .setTitle("Confirm Remote Wipe")
                 .setMessage("This is irreversible. All selected data will be permanently deleted from Firebase. Are you sure?")
                 .setPositiveButton("Wipe Now", (dialog, which) -> executeWipe())
@@ -65,7 +63,7 @@ public class WipeFragment extends Fragment {
 
     private void executeWipe() {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            Toast.makeText(requireContext(),
+            Toast.makeText(this,
                     "You must be signed in to wipe data.",
                     Toast.LENGTH_LONG).show();
             return;
@@ -88,10 +86,10 @@ public class WipeFragment extends Fragment {
                     setLoading(false);
                     Log.d(TAG, "Remote wipe succeeded");
                     FirebaseAuth.getInstance().signOut();
-                    Toast.makeText(requireContext(),
+                    Toast.makeText(this,
                             "Wipe complete. All data has been deleted.",
                             Toast.LENGTH_LONG).show();
-                    Intent intent = new Intent(requireContext(), LoginActivity.class);
+                    Intent intent = new Intent(this, LoginActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                 })
@@ -99,7 +97,7 @@ public class WipeFragment extends Fragment {
                     setLoading(false);
                     String detail = describeError(e);
                     Log.e(TAG, "Remote wipe failed: " + detail, e);
-                    Toast.makeText(requireContext(),
+                    Toast.makeText(this,
                             "Wipe failed: " + detail,
                             Toast.LENGTH_LONG).show();
                 });
