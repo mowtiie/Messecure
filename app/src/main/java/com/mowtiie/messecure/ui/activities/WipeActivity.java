@@ -45,6 +45,11 @@ public class WipeActivity extends AppCompatActivity {
             return insets;
         });
 
+        setSupportActionBar(findViewById(R.id.toolbar));
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         wipeScope   = findViewById(R.id.wipeScope);
         wipeButton  = findViewById(R.id.wipeButton);
         progressBar = findViewById(R.id.progressBar);

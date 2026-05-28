@@ -31,6 +31,11 @@ public class SettingsActivity extends AppCompatActivity {
             return insets;
         });
 
+        setSupportActionBar(findViewById(R.id.toolbar));
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
 
         SwitchMaterial biometricSwitch    = findViewById(R.id.biometricSwitch);

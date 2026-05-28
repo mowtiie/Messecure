@@ -21,15 +21,19 @@
         android:theme="@style/Theme.Messecure">
         <activity
             android:name=".ui.activities.SettingsActivity"
+            android:parentActivityName=".ui.activities.MainActivity"
             android:exported="false" />
         <activity
             android:name=".ui.activities.WipeActivity"
+            android:parentActivityName=".ui.activities.MainActivity"
             android:exported="false" />
         <activity
             android:name=".ui.activities.ProfileActivity"
+            android:parentActivityName=".ui.activities.MainActivity"
             android:exported="false" />
         <activity
             android:name=".ui.activities.ContactsActivity"
+            android:parentActivityName=".ui.activities.MainActivity"
             android:exported="false" />
         <activity
             android:name=".ui.activities.BiometricActivity"

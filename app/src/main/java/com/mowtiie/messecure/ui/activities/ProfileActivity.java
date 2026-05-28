@@ -34,6 +34,11 @@ public class ProfileActivity extends AppCompatActivity {
             return insets;
         });
 
+        setSupportActionBar(findViewById(R.id.toolbar));
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
+
         db         = FirebaseFirestore.getInstance();
         currentUid = FirebaseAuth.getInstance().getUid();
 
