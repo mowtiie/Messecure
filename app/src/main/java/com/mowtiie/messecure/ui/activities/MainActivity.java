@@ -63,7 +63,8 @@ public class MainActivity extends AppCompatActivity {
 
         int id = item.getItemId();
         if (id == R.id.menu_contacts) {
-            navController.navigate(R.id.contactsFragment);
+            Intent contactsIntent = new Intent(MainActivity.this, ContactsActivity.class);
+            startActivity(contactsIntent);
         } else if (id == R.id.menu_profile) {
             navController.navigate(R.id.profileFragment);
         } else if (id == R.id.menu_settings) {
