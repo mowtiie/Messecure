@@ -29,7 +29,7 @@ public class WipeFragment extends Fragment {
 
     private static final String TAG = "WipeFragment";
 
-    private static final String FUNCTIONS_REGION = "asia-southeast1";
+    private static final String FUNCTIONS_REGION = "us-central1";
 
     private RadioGroup wipeScope;
     private Button wipeButton;
