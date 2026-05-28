@@ -161,7 +161,8 @@ public class MainActivity extends AppCompatActivity {
             Intent profileIntent = new Intent(MainActivity.this, ProfileActivity.class);
             startActivity(profileIntent);
         } else if (id == R.id.menu_settings) {
-            // move to settings activity
+            Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(settingsIntent);
         } else if (id == R.id.menu_wipe) {
             Intent wipeIntent = new Intent(MainActivity.this, WipeActivity.class);
             startActivity(wipeIntent);
