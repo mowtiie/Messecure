@@ -75,10 +75,11 @@ public class ContactsActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.contacts_menu, menu);
-        MenuItem searchMenu = menu.findItem(R.id.search);
+        MenuItem searchMenu = menu.findItem(R.id.menu_search);
         SearchView searchView = (SearchView) searchMenu.getActionView();
 
         assert searchView != null;
+        searchView.setQueryHint("Search your contacts here");
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
