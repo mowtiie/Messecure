@@ -5,19 +5,20 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.content.pm.PackageManager;
+import android.content.SharedPreferences;
 import android.os.Build;
 
-import androidx.core.app.ActivityCompat;
+import androidx.annotation.RequiresPermission;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.preference.PreferenceManager;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
-import com.mowtiie.messecure.R;
 import com.mowtiie.messecure.ui.activities.ChatActivity;
+import com.mowtiie.messecure.R;
 
 public class MessecureMessagingService extends FirebaseMessagingService {
 
@@ -30,10 +31,26 @@ public class MessecureMessagingService extends FirebaseMessagingService {
         createNotificationChannel();
     }
 
+    @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
         String convId = remoteMessage.getData().get("convId");
         if (convId == null) return;
+
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean stealthMode = prefs.getBoolean("stealth_notif", true);
+
+        String title;
+        String body;
+
+        if (stealthMode) {
+            title = "Messecure";
+            body  = "You have a new secure message";
+        } else {
+            String senderName = remoteMessage.getData().get("senderName");
+            title = senderName != null ? senderName : "Messecure";
+            body  = "Tap to read";
+        }
 
         Intent intent = new Intent(this, ChatActivity.class);
         intent.putExtra("convId", convId);
@@ -45,15 +62,17 @@ public class MessecureMessagingService extends FirebaseMessagingService {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_lock)
-                .setContentTitle("Messecure")
-                .setContentText("You have a new secure message")
+                .setContentTitle(title)
+                .setContentText(body)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent);
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-            NotificationManagerCompat.from(this).notify(convId.hashCode(), builder.build());
+        if (stealthMode) {
+            builder.setVisibility(NotificationCompat.VISIBILITY_SECRET);
         }
+
+        NotificationManagerCompat.from(this).notify(convId.hashCode(), builder.build());
     }
 
     @Override
