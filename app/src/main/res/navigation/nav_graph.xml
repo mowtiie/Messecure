@@ -2,20 +2,7 @@
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/nav_graph"
-    app:startDestination="@id/chatsFragment">
-
-    <fragment
-        android:id="@+id/chatsFragment"
-        android:name="com.mowtiie.messecure.ui.fragments.ChatsFragment"
-        tools:layout="@layout/fragment_chats"
-        android:label="Chats"/>
-
-    <fragment
-        android:id="@+id/contactsFragment"
-        android:name="com.mowtiie.messecure.ui.fragments.ContactsFragment"
-        tools:layout="@layout/fragment_contacts"
-        android:label="Contacts"/>
+    android:id="@+id/nav_graph">
 
     <fragment
         android:id="@+id/profileFragment"

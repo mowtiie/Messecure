@@ -4,26 +4,47 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.WindowManager;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.navigation.NavController;
-import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.Query;
 import com.mowtiie.messecure.R;
+import com.mowtiie.messecure.data.Conversation;
+import com.mowtiie.messecure.ui.adapters.ConversationAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private NavController navController;
-
     private long backgroundedAt = -1;
     private static final long LOCK_TIMEOUT_MS = 30_000;
+
+    private RecyclerView recyclerView;
+    private ConversationAdapter adapter;
+    private List<Conversation> conversations = new ArrayList<>();
+    private ProgressBar progressBar;
+    private TextView emptyView;
+
+    private FirebaseFirestore db;
+    private String currentUid;
+    private ListenerRegistration listener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,10 +66,66 @@ public class MainActivity extends AppCompatActivity {
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager().findFragmentById(R.id.navHostFragment);
-        if (navHostFragment != null) {
-            navController = navHostFragment.getNavController();
-        }
+        db         = FirebaseFirestore.getInstance();
+        currentUid = FirebaseAuth.getInstance().getUid();
+
+        recyclerView = findViewById(R.id.recyclerView);
+        progressBar  = findViewById(R.id.progressBar);
+        emptyView    = findViewById(R.id.emptyView);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        adapter = new ConversationAdapter(conversations, conversation -> {
+            Intent intent = new Intent(this, ChatActivity.class);
+            intent.putExtra("convId", conversation.getId());
+            intent.putExtra("otherUserName", conversation.getOtherUserName());
+            startActivity(intent);
+        });
+        recyclerView.setAdapter(adapter);
+
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(view -> {
+            Intent chatIntent = new Intent(MainActivity.this, ContactsActivity.class);
+            startActivity(chatIntent);
+        });
+
+        listenForConversations();
+    }
+
+    private void listenForConversations() {
+        progressBar.setVisibility(View.VISIBLE);
+
+        listener = db.collection("conversations")
+                .whereArrayContains("members", currentUid)
+                .orderBy("lastMessageTime", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    progressBar.setVisibility(View.GONE);
+                    if (error != null || snapshots == null) return;
+
+                    conversations.clear();
+
+                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        Conversation conv = doc.toObject(Conversation.class);
+                        if (conv == null) continue;
+                        conv.setId(doc.getId());
+
+                        String otherUid = conv.getOtherUserId(currentUid);
+                        if (otherUid != null) {
+                            db.collection("users").document(otherUid).get()
+                                    .addOnSuccessListener(userDoc -> {
+                                        if (userDoc.exists()) {
+                                            conv.setOtherUserName(userDoc.getString("displayName"));
+                                            conv.setOtherUserEmail(userDoc.getString("email"));
+                                        }
+                                        adapter.notifyDataSetChanged();
+                                    });
+                        }
+
+                        conversations.add(conv);
+                    }
+
+                    emptyView.setVisibility(conversations.isEmpty() ? View.VISIBLE : View.GONE);
+                    adapter.notifyDataSetChanged();
+                });
     }
 
     @Override
@@ -59,18 +136,16 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (navController == null) return super.onOptionsItemSelected(item);
-
         int id = item.getItemId();
         if (id == R.id.menu_contacts) {
             Intent contactsIntent = new Intent(MainActivity.this, ContactsActivity.class);
             startActivity(contactsIntent);
         } else if (id == R.id.menu_profile) {
-            navController.navigate(R.id.profileFragment);
+            // move to profile activity
         } else if (id == R.id.menu_settings) {
-            navController.navigate(R.id.settingsFragment);
+            // move to settings activity
         } else if (id == R.id.menu_wipe) {
-            navController.navigate(R.id.wipeFragment);
+            // move to wipe activity
         } else if (id == R.id.menu_logout) {
             signOut();
         }
