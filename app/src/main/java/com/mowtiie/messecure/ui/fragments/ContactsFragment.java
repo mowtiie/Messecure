@@ -2,10 +2,13 @@ package com.mowtiie.messecure.ui.fragments;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,11 +34,14 @@ import java.util.Map;
 
 public class ContactsFragment extends Fragment {
 
+    private static final String TAG = "ContactsFragment";
+
     private RecyclerView recyclerView;
     private ContactsAdapter adapter;
-    private List<User> allUsers    = new ArrayList<>();
-    private List<User> filtered    = new ArrayList<>();
+    private final List<User> allUsers = new ArrayList<>();
+    private final List<User> filtered = new ArrayList<>();
     private ProgressBar progressBar;
+    private TextView emptyView;
 
     private FirebaseFirestore db;
     private String currentUid;
@@ -57,15 +63,22 @@ public class ContactsFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.recyclerView);
         progressBar  = view.findViewById(R.id.progressBar);
+        emptyView    = view.findViewById(R.id.emptyView);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new ContactsAdapter(filtered, user -> openOrCreateConversation(user));
+        adapter = new ContactsAdapter(filtered, this::openOrCreateConversation);
         recyclerView.setAdapter(adapter);
 
         SearchView searchView = view.findViewById(R.id.searchView);
+        searchView.setIconifiedByDefault(false);
+        searchView.clearFocus();
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public boolean onQueryTextSubmit(String query) { return false; }
+            public boolean onQueryTextSubmit(String query) {
+                filterUsers(query);
+                return true;
+            }
 
             @Override
             public boolean onQueryTextChange(String newText) {
@@ -74,49 +87,75 @@ public class ContactsFragment extends Fragment {
             }
         });
 
-        loadVerifiedUsers();
+        loadAllUsers();
     }
 
-    private void loadVerifiedUsers() {
+    private void loadAllUsers() {
         progressBar.setVisibility(View.VISIBLE);
+        if (emptyView != null) emptyView.setVisibility(View.GONE);
 
         db.collection("users")
-                .whereEqualTo("verified", true)
                 .get()
                 .addOnSuccessListener(snapshots -> {
                     progressBar.setVisibility(View.GONE);
                     allUsers.clear();
 
+                    Log.d(TAG, "Firestore returned " + snapshots.size() + " user docs");
+
                     for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        // Exclude the current user from the contacts list
                         if (doc.getId().equals(currentUid)) continue;
+
                         User user = doc.toObject(User.class);
-                        if (user != null) {
-                            user.setUid(doc.getId());
-                            allUsers.add(user);
+                        if (user == null) {
+                            Log.w(TAG, "Skipping user doc " + doc.getId() + " — could not deserialize");
+                            continue;
                         }
+
+                        user.setUid(doc.getId());
+                        allUsers.add(user);
                     }
+
+                    Log.d(TAG, "Loaded " + allUsers.size() + " contacts (excluding current user)");
 
                     filtered.clear();
                     filtered.addAll(allUsers);
                     adapter.notifyDataSetChanged();
+                    updateEmptyState();
                 })
-                .addOnFailureListener(e -> progressBar.setVisibility(View.GONE));
+                .addOnFailureListener(e -> {
+                    progressBar.setVisibility(View.GONE);
+                    Log.e(TAG, "Failed to load users", e);
+                    Toast.makeText(requireContext(),
+                            "Failed to load contacts: " + e.getMessage(),
+                            Toast.LENGTH_LONG).show();
+                });
     }
 
     private void filterUsers(String query) {
         filtered.clear();
+
         if (query == null || query.trim().isEmpty()) {
             filtered.addAll(allUsers);
         } else {
             String lower = query.toLowerCase().trim();
             for (User user : allUsers) {
-                if ((user.getDisplayName() != null && user.getDisplayName().toLowerCase().contains(lower))
-                        || (user.getEmail() != null && user.getEmail().toLowerCase().contains(lower))) {
+                String name  = user.getDisplayName() != null ? user.getDisplayName().toLowerCase() : "";
+                String email = user.getEmail()       != null ? user.getEmail().toLowerCase()       : "";
+                if (name.contains(lower) || email.contains(lower)) {
                     filtered.add(user);
                 }
             }
         }
+
         adapter.notifyDataSetChanged();
+        updateEmptyState();
+    }
+
+    private void updateEmptyState() {
+        if (emptyView != null) {
+            emptyView.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void openOrCreateConversation(User otherUser) {
@@ -127,6 +166,7 @@ public class ContactsFragment extends Fragment {
                     String existingConvId = null;
 
                     for (DocumentSnapshot doc : snapshots.getDocuments()) {
+                        @SuppressWarnings("unchecked")
                         List<String> members = (List<String>) doc.get("members");
                         if (members != null && members.contains(otherUser.getUid())) {
                             existingConvId = doc.getId();
@@ -139,7 +179,9 @@ public class ContactsFragment extends Fragment {
                     } else {
                         createConversation(otherUser);
                     }
-                });
+                })
+                .addOnFailureListener(e -> Toast.makeText(requireContext(),
+                        "Could not open chat: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
     private void createConversation(User otherUser) {
@@ -150,8 +192,9 @@ public class ContactsFragment extends Fragment {
         conv.put("destructTimer",   0);
 
         db.collection("conversations").add(conv)
-                .addOnSuccessListener(ref ->
-                        openChat(ref.getId(), otherUser.getDisplayName()));
+                .addOnSuccessListener(ref -> openChat(ref.getId(), otherUser.getDisplayName()))
+                .addOnFailureListener(e -> Toast.makeText(requireContext(),
+                        "Failed to start chat: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
     private void openChat(String convId, String otherUserName) {
