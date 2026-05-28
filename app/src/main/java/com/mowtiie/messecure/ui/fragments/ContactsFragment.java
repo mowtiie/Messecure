@@ -119,10 +119,6 @@ public class ContactsFragment extends Fragment {
         adapter.notifyDataSetChanged();
     }
 
-    /**
-     * Checks if a conversation already exists between currentUid and otherUid.
-     * If yes, opens it. If not, creates a new one first.
-     */
     private void openOrCreateConversation(User otherUser) {
         db.collection("conversations")
                 .whereArrayContains("members", currentUid)

@@ -1,32 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/chatsFragment">
 
     <fragment
         android:id="@+id/chatsFragment"
         android:name="com.mowtiie.messecure.ui.fragments.ChatsFragment"
+        tools:layout="@layout/fragment_chats"
         android:label="Chats"/>
 
     <fragment
         android:id="@+id/contactsFragment"
         android:name="com.mowtiie.messecure.ui.fragments.ContactsFragment"
+        tools:layout="@layout/fragment_contacts"
         android:label="Contacts"/>
 
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.mowtiie.messecure.ui.fragments.ProfileFragment"
+        tools:layout="@layout/fragment_profile"
         android:label="Profile"/>
 
     <fragment
         android:id="@+id/settingsFragment"
         android:name="com.mowtiie.messecure.ui.fragments.SettingsFragment"
+        tools:layout="@layout/fragment_settings"
         android:label="Settings"/>
 
     <fragment
         android:id="@+id/wipeFragment"
         android:name="com.mowtiie.messecure.ui.fragments.WipeFragment"
+        tools:layout="@layout/fragment_wipe"
         android:label="Remote Wipe"/>
 
 </navigation>

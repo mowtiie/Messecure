@@ -1,11 +1,14 @@
 package com.mowtiie.messecure.util;
 
+import android.Manifest;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Build;
 
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
@@ -14,7 +17,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.mowtiie.messecure.R;
-import com.mowtiie.messecure.activities.ChatActivity;
+import com.mowtiie.messecure.ui.activities.ChatActivity;
 
 public class MessecureMessagingService extends FirebaseMessagingService {
 
@@ -43,12 +46,14 @@ public class MessecureMessagingService extends FirebaseMessagingService {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_lock)
                 .setContentTitle("Messecure")
-                .setContentText("You have a new secure message") // never reveal content
+                .setContentText("You have a new secure message")
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent);
 
-        NotificationManagerCompat.from(this).notify(convId.hashCode(), builder.build());
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+            NotificationManagerCompat.from(this).notify(convId.hashCode(), builder.build());
+        }
     }
 
     @Override

@@ -57,7 +57,6 @@ public class BiometricActivity extends AppCompatActivity {
                     @Override
                     public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
                         super.onAuthenticationError(errorCode, errString);
-                        // User pressed "Use Password" fallback
                         if (errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
                             goToLogin();
                         } else {

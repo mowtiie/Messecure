@@ -6,13 +6,18 @@ import android.view.WindowManager;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -38,7 +43,7 @@ public class ChatActivity extends AppCompatActivity {
     private List<Message> messages = new ArrayList<>();
 
     private TextInputEditText inputField;
-    private ImageButton sendButton;
+    private FloatingActionButton sendButton;
 
     private FirebaseFirestore db;
     private String currentUid;
@@ -52,10 +57,20 @@ public class ChatActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE);
+                WindowManager.LayoutParams.FLAG_SECURE
+        );
+
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_chat);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootView), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
 
         db         = FirebaseFirestore.getInstance();
         currentUid = FirebaseAuth.getInstance().getUid();
@@ -71,7 +86,7 @@ public class ChatActivity extends AppCompatActivity {
 
         recyclerView = findViewById(R.id.recyclerView);
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setStackFromEnd(true); // newest messages at bottom
+        layoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(layoutManager);
         adapter = new MessageAdapter(messages, currentUid);
         recyclerView.setAdapter(adapter);

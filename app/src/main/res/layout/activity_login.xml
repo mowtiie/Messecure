@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/rootView"
+    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -8,27 +10,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="32dp"
-        android:gravity="center">
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:padding="32dp">
 
-        <View
-            android:layout_width="72dp"
-            android:layout_height="72dp"
-            android:layout_marginBottom="16dp"/>
-
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Welcome back"
-            android:textSize="24sp"
+            android:textAppearance="?attr/textAppearanceDisplayMedium"
             android:textStyle="bold"
             android:layout_marginBottom="4dp"/>
 
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Sign in to your Messecure account"
-            android:textSize="14sp"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
             android:layout_marginBottom="40dp"/>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -84,20 +82,21 @@
             android:orientation="horizontal"
             android:gravity="center">
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Don't have an account? "
-                android:textSize="14sp"/>
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:text="Don't have an account?"/>
 
-            <TextView
+            <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/registerLink"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Register"
+                android:textColor="?attr/colorPrimary"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textStyle="bold"
-                android:textSize="14sp"
                 android:padding="4dp"/>
         </LinearLayout>
     </LinearLayout>
-</ScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
