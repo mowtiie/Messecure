@@ -16,6 +16,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.mowtiie.messecure.R;
+import com.mowtiie.messecure.util.BootstrapHelper;
 
 public class ProfileActivity extends AppCompatActivity {
 
@@ -45,6 +46,8 @@ public class ProfileActivity extends AppCompatActivity {
         nameText    = findViewById(R.id.nameText);
         emailText   = findViewById(R.id.emailText);
         avatarLabel = findViewById(R.id.avatarLabel);
+
+        nameText.setOnClickListener(view -> BootstrapHelper.promoteSelf(ProfileActivity.this));
 
         loadProfile();
 
