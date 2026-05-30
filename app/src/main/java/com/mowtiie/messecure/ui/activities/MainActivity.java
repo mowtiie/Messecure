@@ -30,6 +30,7 @@ import com.mowtiie.messecure.data.Conversation;
 import com.mowtiie.messecure.ui.adapters.AdminUserAdapter;
 import com.mowtiie.messecure.ui.adapters.ConversationAdapter;
 import com.mowtiie.messecure.util.ConversationCrypto;
+import com.mowtiie.messecure.util.NotificationPermissionHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -104,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
             Intent chatIntent = new Intent(MainActivity.this, ContactsActivity.class);
             startActivity(chatIntent);
         });
+
+        NotificationPermissionHelper.requestIfNeeded(this);
 
         listenForConversations();
     }

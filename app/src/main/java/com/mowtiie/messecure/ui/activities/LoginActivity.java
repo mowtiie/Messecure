@@ -22,6 +22,7 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.mowtiie.messecure.R;
+import com.mowtiie.messecure.util.NotificationPermissionHelper;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -68,6 +69,8 @@ public class LoginActivity extends AppCompatActivity {
         TextView emergencyWipeLink = findViewById(R.id.emergencyWipeLink);
         emergencyWipeLink.setOnClickListener(v ->
                 startActivity(new Intent(this, EmergencyWipeActivity.class)));
+
+        NotificationPermissionHelper.requestIfNeeded(this);
     }
 
     private void attemptLogin() {

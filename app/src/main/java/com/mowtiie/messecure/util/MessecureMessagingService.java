@@ -34,7 +34,8 @@ public class MessecureMessagingService extends FirebaseMessagingService {
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        String convId = remoteMessage.getData().get("convId");
+        String convId     = remoteMessage.getData().get("convId");
+        String senderName = remoteMessage.getData().get("senderName");
         if (convId == null) return;
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
@@ -42,23 +43,25 @@ public class MessecureMessagingService extends FirebaseMessagingService {
 
         String title;
         String body;
+        int    visibility;
 
         if (stealthMode) {
-            title = "Messecure";
-            body  = "You have a new secure message";
+            title      = "Messecure";
+            body       = "You have a new secure message";
+            visibility = NotificationCompat.VISIBILITY_SECRET;
         } else {
-            String senderName = remoteMessage.getData().get("senderName");
-            title = senderName != null ? senderName : "Messecure";
-            body  = "Tap to read";
+            title      = senderName != null ? senderName : "Messecure";
+            body       = "Tap to read";
+            visibility = NotificationCompat.VISIBILITY_PRIVATE;
         }
 
         Intent intent = new Intent(this, ChatActivity.class);
         intent.putExtra("convId", convId);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
 
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, intent,
-                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
+                this, convId.hashCode(), intent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_lock)
@@ -66,11 +69,8 @@ public class MessecureMessagingService extends FirebaseMessagingService {
                 .setContentText(body)
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setVisibility(visibility)
                 .setContentIntent(pendingIntent);
-
-        if (stealthMode) {
-            builder.setVisibility(NotificationCompat.VISIBILITY_SECRET);
-        }
 
         NotificationManagerCompat.from(this).notify(convId.hashCode(), builder.build());
     }
@@ -92,6 +92,7 @@ public class MessecureMessagingService extends FirebaseMessagingService {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_HIGH);
             channel.setDescription("Stealth notifications for Messecure");
+            channel.setLockscreenVisibility(NotificationCompat.VISIBILITY_SECRET);
             NotificationManager manager = getSystemService(NotificationManager.class);
             if (manager != null) manager.createNotificationChannel(channel);
         }
