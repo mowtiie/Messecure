@@ -29,6 +29,7 @@ import com.mowtiie.messecure.R;
 import com.mowtiie.messecure.data.Conversation;
 import com.mowtiie.messecure.ui.adapters.AdminUserAdapter;
 import com.mowtiie.messecure.ui.adapters.ConversationAdapter;
+import com.mowtiie.messecure.util.ConversationCrypto;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,11 +126,20 @@ public class MainActivity extends AppCompatActivity {
                     if (error != null || snapshots == null) return;
 
                     conversations.clear();
-
                     for (DocumentSnapshot doc : snapshots.getDocuments()) {
                         Conversation conv = doc.toObject(Conversation.class);
                         if (conv == null) continue;
                         conv.setId(doc.getId());
+
+                        String key        = doc.getString("encryptionKey");
+                        String cipherText = conv.getLastMessage();
+                        if (key != null && cipherText != null && !cipherText.isEmpty()) {
+                            try {
+                                conv.setLastMessage(ConversationCrypto.decrypt(cipherText, key));
+                            } catch (Exception e) {
+                                conv.setLastMessage("\uD83D\uDD12 Encrypted message");
+                            }
+                        }
 
                         String otherUid = conv.getOtherUserId(currentUid);
                         if (otherUid != null) {
@@ -142,11 +152,11 @@ public class MainActivity extends AppCompatActivity {
                                         adapter.notifyDataSetChanged();
                                     });
                         }
-
                         conversations.add(conv);
                     }
 
-                    emptyView.setVisibility(conversations.isEmpty() ? View.VISIBLE : View.GONE);
+                    if (emptyView != null)
+                        emptyView.setVisibility(conversations.isEmpty() ? View.VISIBLE : View.GONE);
                     adapter.notifyDataSetChanged();
                 });
     }
