@@ -20,8 +20,14 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.mowtiie.messecure.R;
 import com.mowtiie.messecure.data.User;
+import com.mowtiie.messecure.util.BackupCodeHelper;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
+
+    private static final String ALLOWED_DOMAIN = "@sti.edu.ph";
 
     private TextInputEditText nameField, emailField, passwordField, confirmPasswordField;
     private Button registerButton;
@@ -34,19 +40,10 @@ public class RegisterActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE
-        );
-
-        EdgeToEdge.enable(this);
+                WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_register);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootView), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, 0, systemBars.right, systemBars.bottom);
-            return insets;
-        });
 
         auth = FirebaseAuth.getInstance();
         db   = FirebaseFirestore.getInstance();
@@ -66,28 +63,23 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void attemptRegister() {
-        String name     = nameField.getText() != null ? nameField.getText().toString().trim() : "";
-        String email    = emailField.getText() != null ? emailField.getText().toString().trim() : "";
-        String password = passwordField.getText() != null ? passwordField.getText().toString() : "";
-        String confirm  = confirmPasswordField.getText() != null ? confirmPasswordField.getText().toString() : "";
+        String name     = text(nameField);
+        String email    = text(emailField);
+        String password = text(passwordField);
+        String confirm  = text(confirmPasswordField);
 
-        // Validate fields
         if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirm.isEmpty()) {
             showError("Please fill in all fields.");
             return;
         }
-
-        // Enforce STI email only
-        if (!email.endsWith("@sti.edu.ph")) {
-            showError("Only @sti.edu.ph email addresses are allowed.");
+        if (!email.endsWith(ALLOWED_DOMAIN)) {
+            showError("Only " + ALLOWED_DOMAIN + " email addresses are allowed.");
             return;
         }
-
         if (password.length() < 8) {
             showError("Password must be at least 8 characters.");
             return;
         }
-
         if (!password.equals(confirm)) {
             showError("Passwords do not match.");
             return;
@@ -98,7 +90,7 @@ public class RegisterActivity extends AppCompatActivity {
         auth.createUserWithEmailAndPassword(email, password)
                 .addOnSuccessListener(result -> {
                     String uid = result.getUser().getUid();
-                    saveUserToFirestore(uid, name, email);
+                    createProfileWithBackupCode(uid, name, email);
                 })
                 .addOnFailureListener(e -> {
                     setLoading(false);
@@ -106,18 +98,41 @@ public class RegisterActivity extends AppCompatActivity {
                 });
     }
 
-    private void saveUserToFirestore(String uid, String name, String email) {
-        User user = new User(uid, name, email);
+    private void createProfileWithBackupCode(String uid, String name, String email) {
+        try {
+            String code = BackupCodeHelper.generateCode();
+            String salt = BackupCodeHelper.generateSalt();
+            String hash = BackupCodeHelper.hashCode(code, salt);
 
-        db.collection("users").document(uid).set(user)
-                .addOnSuccessListener(unused -> {
-                    startActivity(new Intent(this, BiometricActivity.class));
-                    finishAffinity(); // clear back stack
-                })
-                .addOnFailureListener(e -> {
-                    setLoading(false);
-                    showError("Failed to save profile. Try again.");
-                });
+            Map<String, Object> user = new HashMap<>();
+            user.put("uid", uid);
+            user.put("displayName", name);
+            user.put("email", email);
+            user.put("verified", false);
+            user.put("admin", false);
+            user.put("wipeCodeHash", hash);
+            user.put("wipeCodeSalt", salt);
+
+            db.collection("users").document(uid).set(user)
+                    .addOnSuccessListener(unused -> {
+                        Intent intent = new Intent(this, BackupCodeActivity.class);
+                        intent.putExtra("backupCode", code);
+                        startActivity(intent);
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        setLoading(false);
+                        showError("Failed to save profile. Try again.");
+                    });
+
+        } catch (Exception e) {
+            setLoading(false);
+            showError("Could not generate backup code: " + e.getMessage());
+        }
+    }
+
+    private String text(TextInputEditText field) {
+        return field.getText() != null ? field.getText().toString().trim() : "";
     }
 
     private void setLoading(boolean loading) {
