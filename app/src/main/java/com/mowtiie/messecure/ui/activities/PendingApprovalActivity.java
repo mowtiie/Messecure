@@ -38,7 +38,7 @@ public class PendingApprovalActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
 
         Button checkButton = findViewById(R.id.checkButton);
-        BootstrapHelper.promoteSelf(this);
+        // BootstrapHelper.promoteSelf(this);
         checkButton.setOnClickListener(v -> checkStatus());
 
         Button signOutButton = findViewById(R.id.signOutButton);
