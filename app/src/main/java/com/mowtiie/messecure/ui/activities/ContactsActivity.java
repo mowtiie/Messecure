@@ -26,6 +26,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.mowtiie.messecure.R;
 import com.mowtiie.messecure.data.User;
 import com.mowtiie.messecure.ui.adapters.ContactsAdapter;
+import com.mowtiie.messecure.util.ConversationCrypto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -195,16 +196,24 @@ public class ContactsActivity extends AppCompatActivity {
     }
 
     private void createConversation(User otherUser) {
-        Map<String, Object> conv = new HashMap<>();
-        conv.put("members",         Arrays.asList(currentUid, otherUser.getUid()));
-        conv.put("lastMessage",     "");
-        conv.put("lastMessageTime", FieldValue.serverTimestamp());
-        conv.put("destructTimer",   0);
+        try {
+            String sharedKey = ConversationCrypto.generateConversationKey();
 
-        db.collection("conversations").add(conv)
-                .addOnSuccessListener(ref -> openChat(ref.getId(), otherUser.getDisplayName()))
-                .addOnFailureListener(e -> Toast.makeText(this,
-                        "Failed to start chat: " + e.getMessage(), Toast.LENGTH_LONG).show());
+            Map<String, Object> conv = new HashMap<>();
+            conv.put("members",         Arrays.asList(currentUid, otherUser.getUid()));
+            conv.put("lastMessage",     "");
+            conv.put("lastMessageTime", FieldValue.serverTimestamp());
+            conv.put("destructTimer",   0);
+            conv.put("encryptionKey",   sharedKey);
+
+            db.collection("conversations").add(conv)
+                    .addOnSuccessListener(ref -> openChat(ref.getId(), otherUser.getDisplayName()))
+                    .addOnFailureListener(e -> Toast.makeText(this,
+                            "Failed to start chat: " + e.getMessage(), Toast.LENGTH_LONG).show());
+        } catch (Exception e) {
+            Toast.makeText(this,
+                    "Could not generate encryption key: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void openChat(String convId, String otherUserName) {
