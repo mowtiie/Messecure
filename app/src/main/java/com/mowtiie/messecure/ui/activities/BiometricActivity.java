@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.WindowManager;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.biometric.BiometricManager;
@@ -15,6 +16,7 @@ import androidx.preference.PreferenceManager;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.mowtiie.messecure.R;
+import com.mowtiie.messecure.util.RoutingHelper;
 
 import java.util.concurrent.Executor;
 
@@ -26,24 +28,27 @@ public class BiometricActivity extends AppCompatActivity {
 
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE);
+                WindowManager.LayoutParams.FLAG_SECURE
+        );
 
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_biometric);
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            goToLogin();
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
             return;
         }
 
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
         boolean biometricEnabled = prefs.getBoolean("biometric_enabled", true);
         if (!biometricEnabled) {
-            goToMain();
+            route();
             return;
         }
 
-        BiometricManager biometricManager = BiometricManager.from(this);
-        int canAuth = biometricManager.canAuthenticate(
+        BiometricManager bm = BiometricManager.from(this);
+        int canAuth = bm.canAuthenticate(
                 BiometricManager.Authenticators.BIOMETRIC_STRONG
                         | BiometricManager.Authenticators.BIOMETRIC_WEAK);
 
@@ -51,75 +56,48 @@ public class BiometricActivity extends AppCompatActivity {
             case BiometricManager.BIOMETRIC_SUCCESS:
                 showBiometricPrompt();
                 break;
-
             case BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE:
             case BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE:
-                Toast.makeText(this,
-                        "Biometric not supported on this device. Continuing without it.",
-                        Toast.LENGTH_SHORT).show();
-                goToMain();
-                break;
-
             case BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED:
                 Toast.makeText(this,
-                        "No biometric enrolled. Set one up in your device settings to enable lock.",
-                        Toast.LENGTH_LONG).show();
-                goToMain();
+                        "Biometric unavailable. Continuing.", Toast.LENGTH_SHORT).show();
+                route();
                 break;
-
             default:
-                goToMain();
+                route();
                 break;
         }
     }
 
     private void showBiometricPrompt() {
         Executor executor = ContextCompat.getMainExecutor(this);
-
-        BiometricPrompt biometricPrompt = new BiometricPrompt(this, executor,
+        BiometricPrompt prompt = new BiometricPrompt(this, executor,
                 new BiometricPrompt.AuthenticationCallback() {
-
                     @Override
                     public void onAuthenticationSucceeded(@NonNull BiometricPrompt.AuthenticationResult result) {
-                        super.onAuthenticationSucceeded(result);
-                        goToMain();
+                        route();
                     }
-
                     @Override
-                    public void onAuthenticationFailed() {
-                        super.onAuthenticationFailed();
-                        Toast.makeText(BiometricActivity.this,
-                                "Authentication failed. Try again.", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onAuthenticationError(int errorCode, @NonNull CharSequence errString) {
-                        super.onAuthenticationError(errorCode, errString);
-                        if (errorCode == BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
-                            goToLogin();
-                        } else {
-                            Toast.makeText(BiometricActivity.this,
-                                    "Error: " + errString, Toast.LENGTH_LONG).show();
+                    public void onAuthenticationError(int code, @NonNull CharSequence err) {
+                        if (code == BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
+                            FirebaseAuth.getInstance().signOut();
+                            startActivity(new Intent(BiometricActivity.this, LoginActivity.class));
+                            finish();
                         }
                     }
                 });
 
-        BiometricPrompt.PromptInfo promptInfo = new BiometricPrompt.PromptInfo.Builder()
+        BiometricPrompt.PromptInfo info = new BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Messecure")
                 .setSubtitle("Verify your identity to continue")
                 .setNegativeButtonText("Use Password")
                 .build();
-
-        biometricPrompt.authenticate(promptInfo);
+        prompt.authenticate(info);
     }
 
-    private void goToMain() {
-        startActivity(new Intent(this, MainActivity.class));
-        finish();
-    }
-
-    private void goToLogin() {
-        startActivity(new Intent(this, LoginActivity.class));
-        finish();
-    }
-}
+    private void route() {
+        RoutingHelper.resolveDestination(this, intent -> {
+            startActivity(intent);
+            finish();
+        });
+    }}
