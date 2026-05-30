@@ -8,6 +8,7 @@ public class User {
     private String displayName;
     private String email;
     private boolean verified;
+    private boolean admin;
     private String fcmToken;
     @ServerTimestamp
     private Date createdAt;
@@ -18,7 +19,8 @@ public class User {
         this.uid = uid;
         this.displayName = displayName;
         this.email = email;
-        this.verified = true;
+        this.verified = false; // new accounts start UNVERIFIED
+        this.admin = false;
     }
 
     public String getUid() { return uid; }
@@ -33,6 +35,9 @@ public class User {
     public boolean isVerified() { return verified; }
     public void setVerified(boolean verified) { this.verified = verified; }
 
+    public boolean isAdmin() { return admin; }
+    public void setAdmin(boolean admin) { this.admin = admin; }
+
     public String getFcmToken() { return fcmToken; }
     public void setFcmToken(String fcmToken) { this.fcmToken = fcmToken; }
 
@@ -43,9 +48,15 @@ public class User {
         if (displayName == null || displayName.isEmpty()) return "?";
         String[] parts = displayName.trim().split(" ");
         if (parts.length >= 2) {
-            return String.valueOf(parts[0].charAt(0)).toUpperCase()
-                 + String.valueOf(parts[1].charAt(0)).toUpperCase();
+            return ("" + parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
         }
         return String.valueOf(displayName.charAt(0)).toUpperCase();
+    }
+
+    // Status label for the admin dashboard
+    public String getStatusLabel() {
+        if (admin)    return "ADMIN";
+        if (verified) return "Verified";
+        return "Pending";
     }
 }

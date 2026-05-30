@@ -27,6 +27,7 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.mowtiie.messecure.R;
 import com.mowtiie.messecure.data.Conversation;
+import com.mowtiie.messecure.ui.adapters.AdminUserAdapter;
 import com.mowtiie.messecure.ui.adapters.ConversationAdapter;
 
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     private long backgroundedAt = -1;
     private static final long LOCK_TIMEOUT_MS = 30_000;
+    private boolean isAdmin = false;
 
     private RecyclerView recyclerView;
     private ConversationAdapter adapter;
@@ -64,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        isAdmin = getIntent().getBooleanExtra("isAdmin", false);
+
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -73,6 +77,17 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerView);
         progressBar  = findViewById(R.id.progressBar);
         emptyView    = findViewById(R.id.emptyView);
+
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            FirebaseAuth.getInstance().getCurrentUser().getIdToken(false)
+                    .addOnSuccessListener(result -> {
+                        boolean claim = Boolean.TRUE.equals(result.getClaims().get("admin"));
+                        if (claim != isAdmin) {
+                            isAdmin = claim;
+                            invalidateOptionsMenu();
+                        }
+                    });
+        }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ConversationAdapter(conversations, conversation -> {
@@ -90,6 +105,13 @@ public class MainActivity extends AppCompatActivity {
         });
 
         listenForConversations();
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem adminItem = menu.findItem(R.id.menu_admin);
+        if (adminItem != null) adminItem.setVisible(isAdmin);
+        return super.onPrepareOptionsMenu(menu);
     }
 
     private void listenForConversations() {
@@ -168,6 +190,9 @@ public class MainActivity extends AppCompatActivity {
             startActivity(wipeIntent);
         } else if (id == R.id.menu_logout) {
             signOut();
+        } else if (id == R.id.menu_admin) {
+            Intent adminIntent = new Intent(MainActivity.this, AdminActivity.class);
+            startActivity(adminIntent);
         }
         return true;
     }
