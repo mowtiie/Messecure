@@ -22,7 +22,6 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <LinearLayout
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
@@ -47,7 +46,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Lost your phone? Remotely erase all Messecure data from Firebase."
+                android:text="Enter your backup code to erase all data from Firebase."
                 android:textSize="13sp"
                 android:textColor="#CCFFFFFF"
                 android:textAlignment="center"/>
@@ -58,6 +57,22 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="24dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Backup code (MSEC-XXXX-XXXX-XXXX)"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                android:layout_marginBottom="20dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/codeInput"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textCapCharacters"
+                    android:fontFamily="monospace"
+                    android:imeOptions="actionDone"/>
+            </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -100,17 +115,9 @@
                 android:layout_marginBottom="24dp">
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="! "
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="?attr/colorError"/>
-
-                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="This action is irreversible. All selected data will be permanently deleted from Firebase Firestore and cannot be recovered."
+                    android:text="This action is irreversible. Deleted data cannot be recovered."
                     android:textSize="12sp"
                     android:textColor="?attr/colorError"
                     android:lineSpacingMultiplier="1.4"/>

@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.functions.FirebaseFunctions;
 import com.google.firebase.functions.FirebaseFunctionsException;
@@ -28,9 +29,10 @@ public class WipeActivity extends AppCompatActivity {
 
     private static final String TAG = "WipeFragment";
 
-    private static final String FUNCTIONS_REGION = "us-central1";
+    private static final String FUNCTIONS_REGION = "asia-southeast1";
 
     private RadioGroup wipeScope;
+    private TextInputEditText codeInput;
     private Button wipeButton;
     private ProgressBar progressBar;
 
@@ -51,6 +53,7 @@ public class WipeActivity extends AppCompatActivity {
         }
 
         wipeScope   = findViewById(R.id.wipeScope);
+        codeInput   = findViewById(R.id.codeInput);
         wipeButton  = findViewById(R.id.wipeButton);
         progressBar = findViewById(R.id.progressBar);
 
@@ -58,42 +61,42 @@ public class WipeActivity extends AppCompatActivity {
     }
 
     private void confirmWipe() {
+        String code = codeInput.getText() != null ? codeInput.getText().toString().trim() : "";
+        if (code.isEmpty()) {
+            Toast.makeText(this, "Enter your backup code.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Confirm Remote Wipe")
-                .setMessage("This is irreversible. All selected data will be permanently deleted from Firebase. Are you sure?")
-                .setPositiveButton("Wipe Now", (dialog, which) -> executeWipe())
+                .setMessage("This is irreversible. All selected data will be permanently deleted. Continue?")
+                .setPositiveButton("Wipe Now", (d, w) -> executeWipe(code))
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
-    private void executeWipe() {
+    private void executeWipe(String backupCode) {
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-            Toast.makeText(this,
-                    "You must be signed in to wipe data.",
-                    Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "You must be signed in.", Toast.LENGTH_LONG).show();
             return;
         }
 
-        String mode = wipeScope.getCheckedRadioButtonId() == R.id.radioFull
-                ? "full" : "messages";
+        String mode = wipeScope.getCheckedRadioButtonId() == R.id.radioFull ? "full" : "messages";
 
         setLoading(true);
 
         Map<String, Object> data = new HashMap<>();
         data.put("mode", mode);
-
-        Log.d(TAG, "Calling remoteWipe in region " + FUNCTIONS_REGION + " with mode=" + mode);
+        data.put("backupCode", backupCode);
 
         FirebaseFunctions.getInstance(FUNCTIONS_REGION)
                 .getHttpsCallable("remoteWipe")
                 .call(data)
                 .addOnSuccessListener(result -> {
                     setLoading(false);
-                    Log.d(TAG, "Remote wipe succeeded");
                     FirebaseAuth.getInstance().signOut();
                     Toast.makeText(this,
-                            "Wipe complete. All data has been deleted.",
-                            Toast.LENGTH_LONG).show();
+                            "Wipe complete. All data has been deleted.", Toast.LENGTH_LONG).show();
                     Intent intent = new Intent(this, LoginActivity.class);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
@@ -101,33 +104,22 @@ public class WipeActivity extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     setLoading(false);
                     String detail = describeError(e);
-                    Log.e(TAG, "Remote wipe failed: " + detail, e);
-                    Toast.makeText(this,
-                            "Wipe failed: " + detail,
-                            Toast.LENGTH_LONG).show();
+                    Log.e(TAG, "Wipe failed: " + detail, e);
+                    Toast.makeText(this, "Wipe failed: " + detail, Toast.LENGTH_LONG).show();
                 });
     }
 
     private String describeError(Exception e) {
         if (e instanceof FirebaseFunctionsException) {
-            FirebaseFunctionsException ffe = (FirebaseFunctionsException) e;
-            FirebaseFunctionsException.Code code = ffe.getCode();
-
+            FirebaseFunctionsException.Code code = ((FirebaseFunctionsException) e).getCode();
             switch (code) {
-                case UNAUTHENTICATED:
-                    return "Not signed in. Please log in again.";
-                case PERMISSION_DENIED:
-                    return "Permission denied. Check Firestore security rules.";
-                case NOT_FOUND:
-                    return "Function not found. Check that it is deployed.";
-                case UNAVAILABLE:
-                    return "Network unavailable. Try again when online.";
-                case INTERNAL:
-                    return "Server error. Check Firebase Functions logs for details.";
-                case DEADLINE_EXCEEDED:
-                    return "Wipe took too long. Try again — the wipe may have partially completed.";
-                default:
-                    return code.name() + ": " + ffe.getMessage();
+                case UNAUTHENTICATED:   return "Not signed in. Log in again.";
+                case PERMISSION_DENIED: return "Incorrect backup code.";
+                case FAILED_PRECONDITION: return "No backup code set on this account.";
+                case NOT_FOUND:         return "Function not found. Check it is deployed to " + FUNCTIONS_REGION + ".";
+                case UNAVAILABLE:       return "Network unavailable.";
+                case INTERNAL:          return "Server error. Check the function logs.";
+                default:                return code.name();
             }
         }
         return e.getMessage() != null ? e.getMessage() : "Unknown error";

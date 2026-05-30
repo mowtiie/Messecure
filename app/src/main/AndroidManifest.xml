@@ -21,6 +21,7 @@
         android:theme="@style/Theme.Messecure">
         <activity
             android:name=".ui.activities.BackupCodeActivity"
+            android:screenOrientation="portrait"
             android:exported="false" />
         <activity
             android:name=".ui.activities.AdminActivity"
