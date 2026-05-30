@@ -47,8 +47,6 @@ public class ProfileActivity extends AppCompatActivity {
         emailText   = findViewById(R.id.emailText);
         avatarLabel = findViewById(R.id.avatarLabel);
 
-        nameText.setOnClickListener(view -> BootstrapHelper.promoteSelf(ProfileActivity.this));
-
         loadProfile();
 
         findViewById(R.id.editNameButton).setOnClickListener(v -> showEditNameDialog());

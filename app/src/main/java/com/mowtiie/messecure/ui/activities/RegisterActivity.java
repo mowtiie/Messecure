@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
 
-    private static final String ALLOWED_DOMAIN = "@sti.edu.ph";
+    private static final String ALLOWED_DOMAIN = "@gmail.com";
 
     private TextInputEditText nameField, emailField, passwordField, confirmPasswordField;
     private Button registerButton;
@@ -55,6 +55,8 @@ public class RegisterActivity extends AppCompatActivity {
         confirmPasswordField = findViewById(R.id.confirmPasswordField);
         registerButton       = findViewById(R.id.registerButton);
         progressBar          = findViewById(R.id.progressBar);
+
+        emailField.setHint(ALLOWED_DOMAIN);
 
         registerButton.setOnClickListener(v -> attemptRegister());
 

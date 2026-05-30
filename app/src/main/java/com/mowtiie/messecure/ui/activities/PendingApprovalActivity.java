@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.mowtiie.messecure.R;
+import com.mowtiie.messecure.util.BootstrapHelper;
 import com.mowtiie.messecure.util.SecurityHelper;
 
 public class PendingApprovalActivity extends AppCompatActivity {
@@ -37,6 +38,7 @@ public class PendingApprovalActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
 
         Button checkButton = findViewById(R.id.checkButton);
+        // BootstrapHelper.promoteSelf(this);
         checkButton.setOnClickListener(v -> checkStatus());
 
         Button signOutButton = findViewById(R.id.signOutButton);

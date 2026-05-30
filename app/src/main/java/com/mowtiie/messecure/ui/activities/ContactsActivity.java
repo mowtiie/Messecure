@@ -75,7 +75,7 @@ public class ContactsActivity extends AppCompatActivity {
         adapter = new ContactsAdapter(filtered, this::openOrCreateConversation);
         recyclerView.setAdapter(adapter);
 
-        loadAllUsers();
+        loadVerifiedUsers();
     }
 
     @Override
@@ -102,33 +102,26 @@ public class ContactsActivity extends AppCompatActivity {
         return true;
     }
 
-    private void loadAllUsers() {
+    private void loadVerifiedUsers() {
         progressBar.setVisibility(View.VISIBLE);
         if (emptyView != null) emptyView.setVisibility(View.GONE);
 
-        db.collection("users")
-                .get()
+        db.collection("users").get()
                 .addOnSuccessListener(snapshots -> {
                     progressBar.setVisibility(View.GONE);
                     allUsers.clear();
-
-                    Log.d(TAG, "Firestore returned " + snapshots.size() + " user docs");
-
                     for (DocumentSnapshot doc : snapshots.getDocuments()) {
                         if (doc.getId().equals(currentUid)) continue;
 
                         User user = doc.toObject(User.class);
-                        if (user == null) {
-                            Log.w(TAG, "Skipping user doc " + doc.getId() + " — could not deserialize");
-                            continue;
-                        }
+                        if (user == null) continue;
+
+                        if (!user.isVerified()) continue;
 
                         user.setUid(doc.getId());
                         allUsers.add(user);
                     }
-
-                    Log.d(TAG, "Loaded " + allUsers.size() + " contacts (excluding current user)");
-
+                    Log.d(TAG, "Loaded " + allUsers.size() + " verified contacts");
                     filtered.clear();
                     filtered.addAll(allUsers);
                     adapter.notifyDataSetChanged();
@@ -136,10 +129,8 @@ public class ContactsActivity extends AppCompatActivity {
                 })
                 .addOnFailureListener(e -> {
                     progressBar.setVisibility(View.GONE);
-                    Log.e(TAG, "Failed to load users", e);
                     Toast.makeText(this,
-                            "Failed to load contacts: " + e.getMessage(),
-                            Toast.LENGTH_LONG).show();
+                            "Failed to load contacts: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
 

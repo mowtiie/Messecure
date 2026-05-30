@@ -20,9 +20,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Messecure">
         <activity
-            android:name=".ui.activities.BackupCodeActivity"
-            android:screenOrientation="portrait"
+            android:name=".ui.activities.EmergencyWipeActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.activities.BackupCodeActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.activities.AdminActivity"
             android:exported="false"

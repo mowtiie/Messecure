@@ -64,6 +64,10 @@ public class LoginActivity extends AppCompatActivity {
         TextView registerLink = findViewById(R.id.registerLink);
         registerLink.setOnClickListener(v ->
                 startActivity(new Intent(this, RegisterActivity.class)));
+
+        TextView emergencyWipeLink = findViewById(R.id.emergencyWipeLink);
+        emergencyWipeLink.setOnClickListener(v ->
+                startActivity(new Intent(this, EmergencyWipeActivity.class)));
     }
 
     private void attemptLogin() {

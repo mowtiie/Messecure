@@ -98,5 +98,15 @@
                 android:textStyle="bold"
                 android:padding="4dp"/>
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/emergencyWipeLink"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lost phone? Emergency wipe"
+            android:textColor="?attr/colorError"
+            android:textSize="13sp"
+            android:padding="12dp"
+            android:layout_marginTop="16dp"/>
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

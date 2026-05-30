@@ -22,6 +22,7 @@ public class MessecureApp extends Application {
             FirebaseAuth.getInstance().useEmulator(EMULATOR_HOST, 9099);
             FirebaseFirestore.getInstance().useEmulator(EMULATOR_HOST, 8080);
             FirebaseFunctions.getInstance().useEmulator(EMULATOR_HOST, 5001);
+            FirebaseFunctions.getInstance("asia-southeast1").useEmulator(EMULATOR_HOST, 5001);
         } else {
             FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
                     .setLocalCacheSettings(
