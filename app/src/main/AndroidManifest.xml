@@ -20,9 +20,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Messecure">
         <activity
-            android:name=".ui.activities.AdminActivity"
-            android:parentActivityName=".ui.activities.MainActivity"
+            android:name=".ui.activities.BackupCodeActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.activities.AdminActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.activities.MainActivity" />
         <activity
             android:name=".ui.activities.PendingApprovalActivity"
             android:exported="false" />
