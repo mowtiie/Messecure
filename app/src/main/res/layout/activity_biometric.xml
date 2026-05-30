@@ -1,49 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?attr/colorPrimary"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="32dp">
+    android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="lock"
-        android:textSize="64sp"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginBottom="16dp"/>
+    <LinearLayout
+        android:layout_marginTop="48dp"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Messecure"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginBottom="8dp"/>
+        <com.google.android.material.card.MaterialCardView
+            app:cardBackgroundColor="?attr/colorPrimaryContainer"
+            android:layout_width="100dp"
+            android:layout_height="100dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Zero-Persistence Messaging"
-        android:textSize="14sp"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginBottom="48dp"/>
+            <ImageView
+                android:src="@drawable/ic_lock"
+                android:layout_gravity="center"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
+                app:tint="?attr/colorOnPrimaryContainer" />
+        </com.google.android.material.card.MaterialCardView>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="fingerprint"
-        android:textSize="72sp"
-        android:textColor="?attr/colorOnSurface"
-        android:layout_marginBottom="16dp"/>
+        <com.google.android.material.textview.MaterialTextView
+            android:text="@string/app_name"
+            android:textColor="?attr/colorOnPrimary"
+            android:textAppearance="?attr/textAppearanceDisplayMedium"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Touch sensor to unlock"
-        android:textSize="13sp"
-        android:textColor="?attr/colorOnSurface"/>
+        <com.google.android.material.textview.MaterialTextView
+            android:text="Zero-Persistence Messaging\nfor STI Balayan"
+            android:textAlignment="center"
+            android:textColor="?attr/colorOnPrimary"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:layout_marginTop="36dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
 
-</LinearLayout>
+        <ImageView
+            android:layout_marginTop="50dp"
+            android:src="@drawable/ic_fingerprint"
+            android:layout_width="100dp"
+            android:layout_height="100dp"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:text="Biometric Unlock"
+            android:textColor="?attr/colorOnPrimary"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:layout_marginTop="24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

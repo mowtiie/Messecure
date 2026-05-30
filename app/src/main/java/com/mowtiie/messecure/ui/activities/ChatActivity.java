@@ -5,6 +5,7 @@ import android.view.MenuItem;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.preference.PreferenceManager;
@@ -45,14 +46,15 @@ public class ChatActivity extends AppCompatActivity {
     private String convId;
     private String otherUserName;
 
-    private String conversationKey;   // Base64 shared key, fetched on open
-    private int selectedTimer = 0;     // minutes; 0 = off
+    private String conversationKey;
+    private int selectedTimer = 0;
 
     private ListenerRegistration messageListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_chat);
         SecurityHelper.applyScreenshotBlock(this);
 
