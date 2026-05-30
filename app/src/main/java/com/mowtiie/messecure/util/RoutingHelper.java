@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.mowtiie.messecure.ui.activities.LoginActivity;
 import com.mowtiie.messecure.ui.activities.MainActivity;
+import com.mowtiie.messecure.ui.activities.PendingApprovalActivity;
 
 public class RoutingHelper {
 
