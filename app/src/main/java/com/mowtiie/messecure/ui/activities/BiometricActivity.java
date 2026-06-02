@@ -36,8 +36,6 @@ public class BiometricActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_biometric);
 
-        ImageView btnUnlock = findViewById(R.id.btnUnlock);
-
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
