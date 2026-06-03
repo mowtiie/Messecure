@@ -42,14 +42,20 @@ public class Message {
     public void setSelfDestruct(boolean selfDestruct) { this.selfDestruct = selfDestruct; }
     public int getDestructAfterMinutes() { return destructAfterMinutes; }
     public void setDestructAfterMinutes(int destructAfterMinutes) { this.destructAfterMinutes = destructAfterMinutes; }
+
     public String getReplyToId() { return replyToId; }
     public void setReplyToId(String replyToId) { this.replyToId = replyToId; }
     public String getReplyToSnippet() { return replyToSnippet; }
     public void setReplyToSnippet(String replyToSnippet) { this.replyToSnippet = replyToSnippet; }
     public String getReplyToSender() { return replyToSender; }
     public void setReplyToSender(String replyToSender) { this.replyToSender = replyToSender; }
+
     public String getDecryptedReplySnippet() { return decryptedReplySnippet; }
     public void setDecryptedReplySnippet(String s) { this.decryptedReplySnippet = s; }
+
+    public String getDecryptedReplyPreview() { return decryptedReplySnippet; }
+    public void setDecryptedReplyPreview(String s) { this.decryptedReplySnippet = s; }
+    public boolean hasReply() { return replyToId != null; }
 
     public boolean isSentByCurrentUser(String currentUid) {
         return senderId != null && senderId.equals(currentUid);

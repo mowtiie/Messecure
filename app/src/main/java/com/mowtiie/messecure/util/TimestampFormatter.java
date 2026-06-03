@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class TimestrampFormatter {
+public class TimestampFormatter {
 
     private static final long GROUP_THRESHOLD_MS = 5 * 60 * 1000; // 5 min
 
