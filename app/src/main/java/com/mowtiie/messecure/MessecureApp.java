@@ -12,7 +12,7 @@ import com.mowtiie.messecure.util.KeystoreHelper;
 public class MessecureApp extends Application {
 
     private static final boolean USE_EMULATOR = true;
-    private static final String EMULATOR_HOST = "192.168.100.41";
+    private static final String EMULATOR_HOST = "192.168.1.5";
 
     @Override
     public void onCreate() {
