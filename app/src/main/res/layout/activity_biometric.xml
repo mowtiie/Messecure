@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="?attr/colorPrimary"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:layout_marginTop="48dp"
+        android:layout_gravity="center"
         android:gravity="center"
         android:orientation="vertical"
         android:layout_width="match_parent"
@@ -50,6 +51,7 @@
             android:layout_height="100dp"/>
 
         <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/statusText"
             android:text="Biometric Unlock"
             android:textColor="?attr/colorOnPrimary"
             android:textAppearance="?attr/textAppearanceTitleMedium"
@@ -57,4 +59,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
     </LinearLayout>
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/retryButton"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:backgroundTint="?attr/colorPrimaryContainer"
+        android:text="Retry"
+        android:textColor="?attr/colorOnPrimaryContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

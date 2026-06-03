@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -16,25 +17,34 @@ import androidx.biometric.BiometricPrompt;
 import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textview.MaterialTextView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.mowtiie.messecure.R;
+import com.mowtiie.messecure.util.LastSeenHelper;
 import com.mowtiie.messecure.util.RoutingHelper;
 
 import java.util.concurrent.Executor;
 
 public class BiometricActivity extends AppCompatActivity {
 
+    private MaterialButton retryButton;
+    private MaterialTextView statusText;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         getWindow().setFlags(
                 WindowManager.LayoutParams.FLAG_SECURE,
-                WindowManager.LayoutParams.FLAG_SECURE
-        );
-
-        EdgeToEdge.enable(this);
+                WindowManager.LayoutParams.FLAG_SECURE);
         setContentView(R.layout.activity_biometric);
+
+        retryButton = findViewById(R.id.retryButton);
+        statusText  = findViewById(R.id.statusText);
+        if (retryButton != null) {
+            retryButton.setOnClickListener(v -> showBiometricPrompt());
+            retryButton.setVisibility(View.GONE);
+        }
 
         if (FirebaseAuth.getInstance().getCurrentUser() == null) {
             startActivity(new Intent(this, LoginActivity.class));
@@ -72,6 +82,9 @@ public class BiometricActivity extends AppCompatActivity {
     }
 
     private void showBiometricPrompt() {
+        if (retryButton != null) retryButton.setVisibility(View.GONE);
+        if (statusText != null) statusText.setText("Touch sensor to unlock");
+
         Executor executor = ContextCompat.getMainExecutor(this);
         BiometricPrompt prompt = new BiometricPrompt(this, executor,
                 new BiometricPrompt.AuthenticationCallback() {
@@ -80,11 +93,18 @@ public class BiometricActivity extends AppCompatActivity {
                         route();
                     }
                     @Override
+                    public void onAuthenticationFailed() {
+                        if (statusText != null) statusText.setText("Authentication failed. Try again.");
+                    }
+                    @Override
                     public void onAuthenticationError(int code, @NonNull CharSequence err) {
                         if (code == BiometricPrompt.ERROR_NEGATIVE_BUTTON) {
                             FirebaseAuth.getInstance().signOut();
                             startActivity(new Intent(BiometricActivity.this, LoginActivity.class));
                             finish();
+                        } else {
+                            if (retryButton != null) retryButton.setVisibility(View.VISIBLE);
+                            if (statusText != null) statusText.setText("Cancelled. Tap Try Again to retry.");
                         }
                     }
                 });
@@ -98,8 +118,10 @@ public class BiometricActivity extends AppCompatActivity {
     }
 
     private void route() {
+        LastSeenHelper.touch();
         RoutingHelper.resolveDestination(this, intent -> {
             startActivity(intent);
             finish();
         });
-    }}
+    }
+}
