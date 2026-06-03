@@ -7,37 +7,105 @@
     android:padding="4dp">
 
     <TextView
-        android:id="@+id/bubbleText"
+        android:id="@+id/dateChip"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:maxWidth="240dp"
-        android:padding="12dp"
-        android:textSize="14sp"
-        android:textColor="#FFFFFF"
-        android:background="@drawable/bubble_sent"
-        android:lineSpacingMultiplier="1.3"/>
+        android:layout_gravity="center_horizontal"
+        android:textSize="11sp"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:background="?attr/colorOnSurfaceVariant"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="3dp"
+        android:paddingBottom="3dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone"/>
 
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginTop="2dp">
+        android:layout_gravity="end"
+        android:orientation="vertical"
+        android:maxWidth="280dp">
 
-        <TextView
-            android:id="@+id/timeText"
+        <LinearLayout
+            android:id="@+id/replyContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="10sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
-            android:layout_marginEnd="4dp"/>
+            android:orientation="horizontal"
+            android:background="@drawable/reply_background_sent"
+            android:padding="8dp"
+            android:layout_marginBottom="2dp"
+            android:visibility="gone">
 
-        <ImageView
-            android:id="@+id/readIcon"
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:src="@drawable/ic_done"
-            android:contentDescription="Read status"/>
+            <View
+                android:layout_width="3dp"
+                android:layout_height="match_parent"
+                android:background="?attr/colorOnPrimary"
+                android:layout_marginEnd="8dp"/>
+
+            <TextView
+                android:id="@+id/replyPreview"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?attr/colorOnPrimary"
+                android:maxLines="2"
+                android:ellipsize="end"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/bubbleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bubble_sent"
+            android:lineSpacingMultiplier="1.3"/>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_gravity="end"
+            android:gravity="center_vertical"
+            android:layout_marginTop="2dp">
+
+            <ImageView
+                android:id="@+id/selfDestructIcon"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
+                android:src="@drawable/ic_self_destruct"
+                android:tint="?attr/colorError"
+                android:layout_marginEnd="2dp"
+                android:visibility="gone"
+                android:contentDescription="Self-destructs"/>
+
+            <TextView
+                android:id="@+id/selfDestructLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="10sp"
+                android:textColor="?attr/colorError"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone"/>
+
+            <TextView
+                android:id="@+id/timeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="10sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:layout_marginEnd="4dp"/>
+
+            <ImageView
+                android:id="@+id/readIcon"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_done"
+                android:contentDescription="Read status"/>
+        </LinearLayout>
     </LinearLayout>
-
 </LinearLayout>
