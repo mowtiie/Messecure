@@ -1,5 +1,6 @@
 package com.mowtiie.messecure.ui.activities;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,8 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.chip.Chip;
+import com.google.android.material.color.MaterialColors;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
@@ -18,9 +21,15 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.mowtiie.messecure.R;
 import com.mowtiie.messecure.util.BootstrapHelper;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class ProfileActivity extends AppCompatActivity {
 
-    private TextView nameText, emailText, avatarLabel;
+    private TextView nameText, emailText, memberSinceText, avatarLabel;
+    private Chip statusChip;
+
     private FirebaseFirestore db;
     private String currentUid;
 
@@ -43,54 +52,49 @@ public class ProfileActivity extends AppCompatActivity {
         db         = FirebaseFirestore.getInstance();
         currentUid = FirebaseAuth.getInstance().getUid();
 
-        nameText    = findViewById(R.id.nameText);
-        emailText   = findViewById(R.id.emailText);
         avatarLabel = findViewById(R.id.avatarLabel);
+        nameText = findViewById(R.id.nameText);
+        emailText = findViewById(R.id.emailText);
+        memberSinceText = findViewById(R.id.memberSinceText);
+        statusChip = findViewById(R.id.statusChip);
 
         loadProfile();
-
-        findViewById(R.id.editNameButton).setOnClickListener(v -> showEditNameDialog());
     }
 
     private void loadProfile() {
         db.collection("users").document(currentUid).get()
                 .addOnSuccessListener(doc -> {
                     if (!doc.exists()) return;
-                    String name  = doc.getString("displayName");
+
+                    String name = doc.getString("displayName");
                     String email = doc.getString("email");
+                    Boolean admin = doc.getBoolean("admin");
+                    Boolean verified = doc.getBoolean("verified");
+                    Date createdAt = doc.getDate("createdAt");
 
-                    nameText.setText(name != null ? name : "");
-                    emailText.setText(email != null ? email : "");
-
-                    if (name != null && !name.isEmpty()) {
+                    if (name != null) {
+                        nameText.setText(name);
                         String[] parts = name.trim().split(" ");
                         String initials = parts.length >= 2
-                                ? String.valueOf(parts[0].charAt(0)) + parts[1].charAt(0)
-                                : String.valueOf(parts[0].charAt(0));
-                        avatarLabel.setText(initials.toUpperCase());
+                                ? ("" + parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase()
+                                : String.valueOf(name.charAt(0)).toUpperCase();
+                        avatarLabel.setText(initials);
+                    }
+                    emailText.setText(email != null ? email : "");
+
+                    if (Boolean.TRUE.equals(admin)) {
+                        statusChip.setText("Admin");
+                    } else if (Boolean.TRUE.equals(verified)) {
+                        statusChip.setText("Verified");
+                    } else {
+                        statusChip.setText("Pending");
+                    }
+
+                    if (createdAt != null) {
+                        memberSinceText.setText("Member since " +
+                                new SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
+                                        .format(createdAt));
                     }
                 });
-    }
-
-    private void showEditNameDialog() {
-        View dialogView = LayoutInflater.from(this)
-                .inflate(R.layout.dialog_edit_name, null);
-        TextInputEditText nameInput = dialogView.findViewById(R.id.nameInput);
-        nameInput.setText(nameText.getText());
-
-        new MaterialAlertDialogBuilder(this)
-                .setTitle("Edit Display Name")
-                .setView(dialogView)
-                .setPositiveButton("Save", (dialog, which) -> {
-                    String newName = nameInput.getText() != null
-                            ? nameInput.getText().toString().trim() : "";
-                    if (!newName.isEmpty()) {
-                        db.collection("users").document(currentUid)
-                                .update("displayName", newName)
-                                .addOnSuccessListener(unused -> loadProfile());
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
     }
 }

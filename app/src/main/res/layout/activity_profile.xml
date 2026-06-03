@@ -29,6 +29,7 @@
 
         <com.google.android.material.card.MaterialCardView
             app:cardUseCompatPadding="true"
+            style="@style/Widget.Material3.CardView.Filled"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
@@ -40,30 +41,22 @@
                 android:background="?attr/colorPrimary"
                 android:padding="32dp">
 
-                <com.google.android.material.card.MaterialCardView
-                    app:cardUseCompatPadding="true"
-                    app:cardCornerRadius="30dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
-
-                    <TextView
-                        android:id="@+id/avatarLabel"
-                        android:layout_width="72dp"
-                        android:layout_height="72dp"
-                        android:gravity="center"
-                        android:textSize="26sp"
-                        android:textStyle="bold"
-                        android:textColor="?attr/colorPrimary"
-                        android:background="?attr/colorPrimaryContainer"/>
-                </com.google.android.material.card.MaterialCardView>
+                <TextView
+                    android:id="@+id/avatarLabel"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:gravity="center"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorPrimary"
+                    android:background="?attr/colorPrimaryContainer"
+                    android:layout_marginBottom="16dp"/>
 
                 <TextView
                     android:id="@+id/nameText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:textSize="20sp"
+                    android:textSize="22sp"
                     android:textStyle="bold"
                     android:textColor="#FFFFFF"
                     android:layout_marginBottom="4dp"/>
@@ -73,79 +66,34 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="13sp"
-                    android:textColor="#CCFFFFFF"/>
+                    android:textColor="#CCFFFFFF"
+                    android:layout_marginBottom="12dp"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/statusChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Verified"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    app:chipMinHeight="28dp"
+                    android:clickable="false"
+                    android:focusable="false"/>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-
-        <LinearLayout
-            android:id="@+id/editNameButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="20dp"
-            android:background="?attr/selectableItemBackground">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Edit Display Name"
-                android:textSize="15sp"
-                android:textColor="?attr/colorOnSurface"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="›"
-                android:textSize="20sp"
-                android:textColor="?attr/colorOnSurfaceVariant"/>
-        </LinearLayout>
-
-        <com.google.android.material.divider.MaterialDivider
-            android:layout_marginEnd="20dp"
-            android:layout_marginStart="20dp"
-            android:layout_width="match_parent"
-            android:layout_height="1dp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="20dp">
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="20dp">
 
                 <TextView
+                    android:id="@+id/memberSinceText"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Encryption Keys"
-                    android:textSize="15sp"
-                    android:textColor="?attr/colorOnSurface"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="AES-256 via Android Keystore"
-                    android:textSize="12sp"
+                    android:textSize="14sp"
                     android:textColor="?attr/colorOnSurfaceVariant"/>
             </LinearLayout>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Active"
-                android:textSize="12sp"
-                android:textColor="#006E2C"
-                android:background="?attr/colorSurfaceVariant"
-                android:padding="6dp"/>
-        </LinearLayout>
-
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
