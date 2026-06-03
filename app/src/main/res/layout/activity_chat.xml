@@ -1,38 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/rootView"
-    android:fitsSystemWindows="true"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/app_bar"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            app:titleTextColor="?attr/colorOnSurfaceVariant"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"/>
-    </com.google.android.material.appbar.AppBarLayout>
+        android:layout_height="?attr/actionBarSize"
+        app:titleTextColor="?attr/colorOnSurface"
+        android:clickable="true"
+        android:focusable="true"/>
 
     <LinearLayout
-        android:id="@+id/self_destruct"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/app_bar"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
         android:gravity="center_vertical">
 
         <TextView
@@ -40,6 +28,7 @@
             android:layout_height="wrap_content"
             android:text="Self-destruct:"
             android:textSize="12sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
             android:layout_marginEnd="8dp"/>
 
         <com.google.android.material.chip.ChipGroup
@@ -53,51 +42,123 @@
                 android:layout_height="wrap_content"
                 android:text="Off"
                 style="@style/Widget.Material3.Chip.Filter"/>
-
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="5 min"
                 style="@style/Widget.Material3.Chip.Filter"/>
-
             <com.google.android.material.chip.Chip
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="1 hr"
                 style="@style/Widget.Material3.Chip.Filter"/>
-
         </com.google.android.material.chip.ChipGroup>
     </LinearLayout>
 
     <com.google.android.material.divider.MaterialDivider
-        android:id="@+id/top_divider"
-        app:layout_constraintTop_toBottomOf="@id/self_destruct"
         android:layout_width="match_parent"
-        android:layout_height="1dp"/>
+        android:layout_height="wrap_content"/>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerView"
-        app:layout_constraintTop_toBottomOf="@id/top_divider"
-        app:layout_constraintBottom_toTopOf="@id/bottom_divider"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="8dp"
-        android:clipToPadding="false"/>
+        android:layout_weight="1">
 
-    <com.google.android.material.divider.MaterialDivider
-        android:id="@+id/bottom_divider"
-        app:layout_constraintBottom_toTopOf="@id/message_section"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false"/>
+
+        <TextView
+            android:id="@+id/newMessagePill"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="16dp"
+            android:text="↓ New message"
+            android:textColor="?attr/colorOnPrimary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="@drawable/pill_background"
+            android:visibility="gone"/>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/typingIndicator"
         android:layout_width="match_parent"
-        android:layout_height="1dp"/>
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textStyle="italic"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone"/>
 
     <LinearLayout
-        android:id="@+id/message_section"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:id="@+id/replyBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:padding="8dp"
+        android:background="?attr/colorSurfaceVariant"
+        android:visibility="gone">
+
+        <View
+            android:layout_width="3dp"
+            android:layout_height="match_parent"
+            android:background="?attr/colorPrimary"
+            android:layout_marginEnd="8dp"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/replyBarSender"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"/>
+
+            <TextView
+                android:id="@+id/replyBarText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/replyBarClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Cancel reply"/>
+    </LinearLayout>
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
         android:gravity="center_vertical">
 
         <com.google.android.material.textfield.TextInputLayout
@@ -118,9 +179,10 @@
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/sendButton"
-            android:src="@android:drawable/ic_menu_send"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:ignore="ContentDescription" />
+            android:src="@android:drawable/ic_menu_send"
+            android:padding="12dp"
+            android:contentDescription="Send"/>
     </LinearLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

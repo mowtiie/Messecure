@@ -55,6 +55,8 @@ public class Message {
 
     public String getDecryptedReplyPreview() { return decryptedReplySnippet; }
     public void setDecryptedReplyPreview(String s) { this.decryptedReplySnippet = s; }
+    public String getReplyToPreview() { return replyToSnippet; }
+    public void setReplyToPreview(String s) { this.replyToSnippet = s; }
     public boolean hasReply() { return replyToId != null; }
 
     public boolean isSentByCurrentUser(String currentUid) {
