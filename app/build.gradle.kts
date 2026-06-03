@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.recyclerview)
     implementation(libs.preference)
     implementation(libs.firebase.functions)
+    implementation(libs.swiperefreshlayout)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

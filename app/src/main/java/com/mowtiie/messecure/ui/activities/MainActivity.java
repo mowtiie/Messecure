@@ -17,6 +17,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -30,10 +31,14 @@ import com.mowtiie.messecure.data.Conversation;
 import com.mowtiie.messecure.ui.adapters.AdminUserAdapter;
 import com.mowtiie.messecure.ui.adapters.ConversationAdapter;
 import com.mowtiie.messecure.util.ConversationCrypto;
+import com.mowtiie.messecure.util.NicknameHelper;
 import com.mowtiie.messecure.util.NotificationPermissionHelper;
+import com.mowtiie.messecure.util.UnreadCountHelper;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -41,15 +46,21 @@ public class MainActivity extends AppCompatActivity {
     private static final long LOCK_TIMEOUT_MS = 30_000;
     private boolean isAdmin = false;
 
-    private RecyclerView recyclerView;
     private ConversationAdapter adapter;
-    private List<Conversation> conversations = new ArrayList<>();
+    private final List<Conversation> allConversations = new ArrayList<>();
+    private final List<Conversation> filtered = new ArrayList<>();
     private ProgressBar progressBar;
     private TextView emptyView;
+    private View emptyIllustration;
+    private SwipeRefreshLayout swipeRefresh;
 
     private FirebaseFirestore db;
     private String currentUid;
     private ListenerRegistration listener;
+
+    private final Map<String, Integer> unreadCounts = new HashMap<>();
+
+    private Map<String, String> nicknames = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,26 +84,17 @@ public class MainActivity extends AppCompatActivity {
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        db         = FirebaseFirestore.getInstance();
+        db = FirebaseFirestore.getInstance();
         currentUid = FirebaseAuth.getInstance().getUid();
 
-        recyclerView = findViewById(R.id.recyclerView);
-        progressBar  = findViewById(R.id.progressBar);
-        emptyView    = findViewById(R.id.emptyView);
-
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            FirebaseAuth.getInstance().getCurrentUser().getIdToken(false)
-                    .addOnSuccessListener(result -> {
-                        boolean claim = Boolean.TRUE.equals(result.getClaims().get("admin"));
-                        if (claim != isAdmin) {
-                            isAdmin = claim;
-                            invalidateOptionsMenu();
-                        }
-                    });
-        }
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        progressBar = findViewById(R.id.progressBar);
+        emptyView = findViewById(R.id.emptyView);
+        emptyIllustration = findViewById(R.id.emptyIllustration);
+        swipeRefresh = findViewById(R.id.swipeRefresh);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new ConversationAdapter(conversations, conversation -> {
+        adapter = new ConversationAdapter(filtered, unreadCounts, conversation -> {
             Intent intent = new Intent(this, ChatActivity.class);
             intent.putExtra("convId", conversation.getId());
             intent.putExtra("otherUserName", conversation.getOtherUserName());
@@ -100,15 +102,17 @@ public class MainActivity extends AppCompatActivity {
         });
         recyclerView.setAdapter(adapter);
 
+        swipeRefresh.setOnRefreshListener(() -> {
+            loadOwnNicknamesThenListen();
+        });
+
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
-            Intent chatIntent = new Intent(MainActivity.this, ContactsActivity.class);
+            Intent chatIntent = new Intent(MainActivity.this, ChatActivity.class);
             startActivity(chatIntent);
         });
 
-        NotificationPermissionHelper.requestIfNeeded(this);
-
-        listenForConversations();
+        loadOwnNicknamesThenListen();
     }
 
     @Override
@@ -118,7 +122,24 @@ public class MainActivity extends AppCompatActivity {
         return super.onPrepareOptionsMenu(menu);
     }
 
+    private void loadOwnNicknamesThenListen() {
+        db.collection("users").document(currentUid).get()
+                .addOnSuccessListener(doc -> {
+                    nicknames.clear();
+                    if (doc.exists()) {
+                        Object n = doc.get("nicknames");
+                        if (n instanceof Map) {
+                            for (Map.Entry<?, ?> e : ((Map<?, ?>) n).entrySet()) {
+                                nicknames.put(e.getKey().toString(), e.getValue().toString());
+                            }
+                        }
+                    }
+                    listenForConversations();
+                });
+    }
+
     private void listenForConversations() {
+        if (listener != null) listener.remove();
         progressBar.setVisibility(View.VISIBLE);
 
         listener = db.collection("conversations")
@@ -126,15 +147,16 @@ public class MainActivity extends AppCompatActivity {
                 .orderBy("lastMessageTime", Query.Direction.DESCENDING)
                 .addSnapshotListener((snapshots, error) -> {
                     progressBar.setVisibility(View.GONE);
+                    if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
                     if (error != null || snapshots == null) return;
 
-                    conversations.clear();
+                    allConversations.clear();
                     for (DocumentSnapshot doc : snapshots.getDocuments()) {
                         Conversation conv = doc.toObject(Conversation.class);
                         if (conv == null) continue;
                         conv.setId(doc.getId());
 
-                        String key        = doc.getString("encryptionKey");
+                        String key = doc.getString("encryptionKey");
                         String cipherText = conv.getLastMessage();
                         if (key != null && cipherText != null && !cipherText.isEmpty()) {
                             try {
@@ -144,24 +166,73 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
 
-                        String otherUid = conv.getOtherUserId(currentUid);
+                        String otherUid = conv.resolveOtherUserId(currentUid);
                         if (otherUid != null) {
-                            db.collection("users").document(otherUid).get()
-                                    .addOnSuccessListener(userDoc -> {
-                                        if (userDoc.exists()) {
-                                            conv.setOtherUserName(userDoc.getString("displayName"));
-                                            conv.setOtherUserEmail(userDoc.getString("email"));
-                                        }
-                                        adapter.notifyDataSetChanged();
-                                    });
+                            String nick = nicknames.get(otherUid);
+                            if (nick != null) {
+                                conv.setOtherUserName(nick);
+                            } else {
+                                db.collection("users").document(otherUid).get()
+                                        .addOnSuccessListener(userDoc -> {
+                                            if (userDoc.exists()) {
+                                                conv.setOtherUserName(
+                                                        NicknameHelper.resolveLabel(
+                                                                nicknames.get(otherUid),
+                                                                userDoc.getString("displayName")));
+                                            }
+                                            adapter.notifyDataSetChanged();
+                                        });
+                            }
                         }
-                        conversations.add(conv);
+
+                        allConversations.add(conv);
+                        computeUnread(conv.getId());
                     }
 
-                    if (emptyView != null)
-                        emptyView.setVisibility(conversations.isEmpty() ? View.VISIBLE : View.GONE);
-                    adapter.notifyDataSetChanged();
+                    applyFilter("");
+                    updateEmptyState();
                 });
+    }
+
+    private void computeUnread(String convId) {
+        db.collection("users").document(currentUid).get()
+                .addOnSuccessListener(userDoc -> {
+                    long lastRead = UnreadCountHelper.getLastRead(userDoc.getData(), convId);
+                    UnreadCountHelper.queryUnread(convId, lastRead)
+                            .addOnSuccessListener(snap -> {
+                                unreadCounts.put(convId, snap.size());
+                                adapter.notifyDataSetChanged();
+                            });
+                });
+    }
+
+    private void filter(String query) {
+        applyFilter(query);
+        updateEmptyState();
+    }
+
+    private void applyFilter(String query) {
+        filtered.clear();
+        if (query == null || query.trim().isEmpty()) {
+            filtered.addAll(allConversations);
+        } else {
+            String lower = query.toLowerCase().trim();
+            for (Conversation c : allConversations) {
+                String name    = c.getOtherUserName() != null ? c.getOtherUserName().toLowerCase() : "";
+                String preview = c.getLastMessage()   != null ? c.getLastMessage().toLowerCase()   : "";
+                if (name.contains(lower) || preview.contains(lower)) {
+                    filtered.add(c);
+                }
+            }
+        }
+        adapter.notifyDataSetChanged();
+    }
+
+    private void updateEmptyState() {
+        boolean isEmpty = filtered.isEmpty();
+        if (emptyIllustration != null) {
+            emptyIllustration.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+        }
     }
 
     @Override
