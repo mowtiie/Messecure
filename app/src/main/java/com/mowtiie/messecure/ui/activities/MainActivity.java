@@ -2,12 +2,14 @@ package com.mowtiie.messecure.ui.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,11 +30,9 @@ import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.mowtiie.messecure.R;
 import com.mowtiie.messecure.data.Conversation;
-import com.mowtiie.messecure.ui.adapters.AdminUserAdapter;
 import com.mowtiie.messecure.ui.adapters.ConversationAdapter;
 import com.mowtiie.messecure.util.ConversationCrypto;
 import com.mowtiie.messecure.util.NicknameHelper;
-import com.mowtiie.messecure.util.NotificationPermissionHelper;
 import com.mowtiie.messecure.util.UnreadCountHelper;
 
 import java.util.ArrayList;
@@ -42,6 +42,8 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
+
     private long backgroundedAt = -1;
     private static final long LOCK_TIMEOUT_MS = 30_000;
     private boolean isAdmin = false;
@@ -50,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
     private final List<Conversation> allConversations = new ArrayList<>();
     private final List<Conversation> filtered = new ArrayList<>();
     private ProgressBar progressBar;
-    private TextView emptyView;
     private View emptyIllustration;
     private SwipeRefreshLayout swipeRefresh;
 
@@ -59,8 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private ListenerRegistration listener;
 
     private final Map<String, Integer> unreadCounts = new HashMap<>();
-
-    private Map<String, String> nicknames = new HashMap<>();
+    private final Map<String, String> nicknames = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,11 +87,17 @@ public class MainActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         currentUid = FirebaseAuth.getInstance().getUid();
 
+        if (currentUid == null) {
+            Log.w(TAG, "MainActivity opened without authenticated user — sending to login");
+            startActivity(new Intent(this, LoginActivity.class));
+            finish();
+            return;
+        }
+
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        progressBar = findViewById(R.id.progressBar);
-        emptyView = findViewById(R.id.emptyView);
+        progressBar       = findViewById(R.id.progressBar);
         emptyIllustration = findViewById(R.id.emptyIllustration);
-        swipeRefresh = findViewById(R.id.swipeRefresh);
+        swipeRefresh      = findViewById(R.id.swipeRefresh);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ConversationAdapter(filtered, unreadCounts, conversation -> {
@@ -102,14 +108,11 @@ public class MainActivity extends AppCompatActivity {
         });
         recyclerView.setAdapter(adapter);
 
-        swipeRefresh.setOnRefreshListener(() -> {
-            loadOwnNicknamesThenListen();
-        });
+        swipeRefresh.setOnRefreshListener(this::loadOwnNicknamesThenListen);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> {
-            Intent chatIntent = new Intent(MainActivity.this, ChatActivity.class);
-            startActivity(chatIntent);
+            startActivity(new Intent(MainActivity.this, ContactsActivity.class));
         });
 
         loadOwnNicknamesThenListen();
@@ -123,6 +126,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadOwnNicknamesThenListen() {
+        if (currentUid == null) return;
+
         db.collection("users").document(currentUid).get()
                 .addOnSuccessListener(doc -> {
                     nicknames.clear();
@@ -130,10 +135,16 @@ public class MainActivity extends AppCompatActivity {
                         Object n = doc.get("nicknames");
                         if (n instanceof Map) {
                             for (Map.Entry<?, ?> e : ((Map<?, ?>) n).entrySet()) {
-                                nicknames.put(e.getKey().toString(), e.getValue().toString());
+                                if (e.getKey() != null && e.getValue() != null) {
+                                    nicknames.put(e.getKey().toString(), e.getValue().toString());
+                                }
                             }
                         }
                     }
+                    listenForConversations();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to load own nicknames", e);
                     listenForConversations();
                 });
     }
@@ -148,45 +159,61 @@ public class MainActivity extends AppCompatActivity {
                 .addSnapshotListener((snapshots, error) -> {
                     progressBar.setVisibility(View.GONE);
                     if (swipeRefresh != null) swipeRefresh.setRefreshing(false);
-                    if (error != null || snapshots == null) return;
+
+                    if (error != null) {
+                        Log.e(TAG, "Conversations listener failed", error);
+                        Toast.makeText(MainActivity.this,
+                                "Failed to load chats: " + error.getMessage(),
+                                Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    if (snapshots == null) return;
 
                     allConversations.clear();
                     for (DocumentSnapshot doc : snapshots.getDocuments()) {
-                        Conversation conv = doc.toObject(Conversation.class);
-                        if (conv == null) continue;
-                        conv.setId(doc.getId());
+                        try {
+                            Conversation conv = doc.toObject(Conversation.class);
+                            if (conv == null) continue;
+                            conv.setId(doc.getId());
 
-                        String key = doc.getString("encryptionKey");
-                        String cipherText = conv.getLastMessage();
-                        if (key != null && cipherText != null && !cipherText.isEmpty()) {
-                            try {
-                                conv.setLastMessage(ConversationCrypto.decrypt(cipherText, key));
-                            } catch (Exception e) {
-                                conv.setLastMessage("\uD83D\uDD12 Encrypted message");
+                            String key        = doc.getString("encryptionKey");
+                            String cipherText = conv.getLastMessage();
+                            if (key != null && cipherText != null && !cipherText.isEmpty()) {
+                                try {
+                                    conv.setLastMessage(ConversationCrypto.decrypt(cipherText, key));
+                                } catch (Exception e) {
+                                    conv.setLastMessage("\uD83D\uDD12 Encrypted message");
+                                }
                             }
-                        }
 
-                        String otherUid = conv.resolveOtherUserId(currentUid);
-                        if (otherUid != null) {
-                            String nick = nicknames.get(otherUid);
-                            if (nick != null) {
-                                conv.setOtherUserName(nick);
-                            } else {
-                                db.collection("users").document(otherUid).get()
-                                        .addOnSuccessListener(userDoc -> {
-                                            if (userDoc.exists()) {
-                                                conv.setOtherUserName(
-                                                        NicknameHelper.resolveLabel(
-                                                                nicknames.get(otherUid),
-                                                                userDoc.getString("displayName")));
-                                            }
-                                            adapter.notifyDataSetChanged();
-                                        });
+                            String otherUid = conv.resolveOtherUserId(currentUid);
+                            if (otherUid != null) {
+                                String nick = nicknames.get(otherUid);
+                                if (nick != null) {
+                                    conv.setOtherUserName(nick);
+                                } else {
+                                    final Conversation captured = conv;
+                                    db.collection("users").document(otherUid).get()
+                                            .addOnSuccessListener(userDoc -> {
+                                                if (userDoc.exists()) {
+                                                    String displayName = userDoc.getString("displayName");
+                                                    captured.setOtherUserName(
+                                                            NicknameHelper.resolveLabel(
+                                                                    nicknames.get(captured.resolveOtherUserId(currentUid)),
+                                                                    displayName));
+                                                    adapter.notifyDataSetChanged();
+                                                }
+                                            })
+                                            .addOnFailureListener(e ->
+                                                    Log.w(TAG, "Failed to fetch other user for " + captured.getId(), e));
+                                }
                             }
-                        }
 
-                        allConversations.add(conv);
-                        computeUnread(conv.getId());
+                            allConversations.add(conv);
+                            computeUnread(conv.getId());
+                        } catch (Exception e) {
+                            Log.e(TAG, "Failed to process conversation " + doc.getId(), e);
+                        }
                     }
 
                     applyFilter("");
@@ -195,20 +222,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void computeUnread(String convId) {
+        if (currentUid == null || convId == null) return;
+
         db.collection("users").document(currentUid).get()
                 .addOnSuccessListener(userDoc -> {
-                    long lastRead = UnreadCountHelper.getLastRead(userDoc.getData(), convId);
-                    UnreadCountHelper.queryUnread(convId, lastRead)
-                            .addOnSuccessListener(snap -> {
-                                unreadCounts.put(convId, snap.size());
-                                adapter.notifyDataSetChanged();
-                            });
-                });
-    }
-
-    private void filter(String query) {
-        applyFilter(query);
-        updateEmptyState();
+                    try {
+                        Map<String, Object> data = userDoc.getData();
+                        long lastRead = UnreadCountHelper.getLastRead(data, convId);
+                        UnreadCountHelper.queryUnread(convId, lastRead)
+                                .addOnSuccessListener(snap -> {
+                                    unreadCounts.put(convId, snap.size());
+                                    adapter.notifyDataSetChanged();
+                                })
+                                .addOnFailureListener(e ->
+                                        Log.w(TAG, "Unread query failed for " + convId, e));
+                    } catch (Exception e) {
+                        Log.w(TAG, "computeUnread failed for " + convId, e);
+                    }
+                })
+                .addOnFailureListener(e ->
+                        Log.w(TAG, "computeUnread: user doc fetch failed", e));
     }
 
     private void applyFilter(String query) {
@@ -226,34 +259,39 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         adapter.notifyDataSetChanged();
+        updateEmptyState();
     }
 
     private void updateEmptyState() {
-        boolean isEmpty = filtered.isEmpty();
         if (emptyIllustration != null) {
-            emptyIllustration.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+            emptyIllustration.setVisibility(filtered.isEmpty() ? View.VISIBLE : View.GONE);
         }
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main_menu, menu);
+
         MenuItem searchItem = menu.findItem(R.id.menu_search);
-        SearchView searchView = (SearchView) searchItem.getActionView();
-
-        assert searchView != null;
-        searchView.setQueryHint("Search here");
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
+        if (searchItem != null) {
+            View actionView = searchItem.getActionView();
+            if (actionView instanceof SearchView) {
+                SearchView searchView = (SearchView) actionView;
+                searchView.setQueryHint("Search chats");
+                searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                    @Override
+                    public boolean onQueryTextSubmit(String query) {
+                        applyFilter(query);
+                        return true;
+                    }
+                    @Override
+                    public boolean onQueryTextChange(String newText) {
+                        applyFilter(newText);
+                        return true;
+                    }
+                });
             }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                return false;
-            }
-        });
+        }
         return true;
     }
 
@@ -261,22 +299,19 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.menu_contacts) {
-            Intent contactsIntent = new Intent(MainActivity.this, ContactsActivity.class);
-            startActivity(contactsIntent);
+            startActivity(new Intent(this, ContactsActivity.class));
         } else if (id == R.id.menu_profile) {
-            Intent profileIntent = new Intent(MainActivity.this, ProfileActivity.class);
-            startActivity(profileIntent);
+            startActivity(new Intent(this, ProfileActivity.class));
         } else if (id == R.id.menu_settings) {
-            Intent settingsIntent = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivity(settingsIntent);
+            startActivity(new Intent(this, SettingsActivity.class));
         } else if (id == R.id.menu_wipe) {
-            Intent wipeIntent = new Intent(MainActivity.this, WipeActivity.class);
-            startActivity(wipeIntent);
+            startActivity(new Intent(this, WipeActivity.class));
         } else if (id == R.id.menu_logout) {
             signOut();
         } else if (id == R.id.menu_admin) {
-            Intent adminIntent = new Intent(MainActivity.this, AdminActivity.class);
-            startActivity(adminIntent);
+            startActivity(new Intent(this, AdminActivity.class));
+        } else {
+            return super.onOptionsItemSelected(item);
         }
         return true;
     }
@@ -299,6 +334,12 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         backgroundedAt = -1;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (listener != null) listener.remove();
     }
 
     private void signOut() {

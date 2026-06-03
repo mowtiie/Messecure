@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 public class Conversation {
-
     private String id;
     private List<String> members;
     private String lastMessage;
@@ -16,7 +15,9 @@ public class Conversation {
     private int destructTimer;
     private String encryptionKey;
 
-    private Map<String, Boolean> typing = new HashMap<>();
+    private Map<String, Long> typing = new HashMap<>();
+
+    public static final long TYPING_FRESHNESS_MS = 3_000;
 
     private Map<String, Long> unreadCounts = new HashMap<>();
 
@@ -38,10 +39,13 @@ public class Conversation {
     public void setDestructTimer(int destructTimer) { this.destructTimer = destructTimer; }
     public String getEncryptionKey() { return encryptionKey; }
     public void setEncryptionKey(String encryptionKey) { this.encryptionKey = encryptionKey; }
-    public Map<String, Boolean> getTyping() { return typing; }
-    public void setTyping(Map<String, Boolean> typing) { this.typing = typing; }
+
+    public Map<String, Long> getTyping() { return typing; }
+    public void setTyping(Map<String, Long> typing) { this.typing = typing; }
+
     public Map<String, Long> getUnreadCounts() { return unreadCounts; }
     public void setUnreadCounts(Map<String, Long> unreadCounts) { this.unreadCounts = unreadCounts; }
+
     public String getOtherUserName() { return otherUserName; }
     public void setOtherUserName(String otherUserName) { this.otherUserName = otherUserName; }
     public String getOtherUserEmail() { return otherUserEmail; }
@@ -65,8 +69,11 @@ public class Conversation {
 
     public boolean isOtherTyping(String currentUid) {
         if (typing == null) return false;
-        for (Map.Entry<String, Boolean> e : typing.entrySet()) {
-            if (!e.getKey().equals(currentUid) && Boolean.TRUE.equals(e.getValue())) {
+        long now = System.currentTimeMillis();
+        for (Map.Entry<String, Long> e : typing.entrySet()) {
+            if (e.getKey().equals(currentUid)) continue;
+            Long ts = e.getValue();
+            if (ts != null && now - ts < TYPING_FRESHNESS_MS) {
                 return true;
             }
         }
